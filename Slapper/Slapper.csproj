@@ -39,6 +39,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\Entity.cs" />
+    <Compile Include="Attributes\EntityField.cs" />
+    <Compile Include="Attributes\IgnoreField.cs" />
+    <Compile Include="Attributes\SlapperAttribute.cs" />
+    <Compile Include="Reflection\DataReaderMapper.cs" />
     <Compile Include="Reflection\TypeExtensions.cs" />
     <Compile Include="Reflection\ParameterReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
