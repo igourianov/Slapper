@@ -21,25 +21,19 @@ namespace Slapper.Tests
 		}
 
 		[Test]
-		public void BasicTest()
+		public void BasicRead()
 		{
 			using (var conn = OpenConnection())
 			{
-				var ret = conn.ExecuteNonQuery("insert into Person (Name, DOB) values (@Name, @DOB)", new { Name = "Ilia", DOB = new DateTime(1981,03,18) });
-				Assert.AreEqual(1, ret);
-
-				using (var reader = conn.ExecuteReader("select top 1 * from Person order by 1 desc"))
+				using (var reader = conn.ExecuteReader("select top 1 * from Employee where Name like @Name", new { Name = "Zapp%" }))
 				{
 					Assert.IsTrue(reader.Read());
 					Assert.Greater((int)reader["ID"], 0);
-					Assert.AreEqual("Ilia", reader["Name"]);
+					Assert.AreEqual("Zapp Brannigan", reader["Name"]);
 				}
 
-				var dob = conn.ExecuteScalar<DateTime>("select top 1 DOB from Person order by 1 desc");
-				Assert.AreEqual(new DateTime(1981, 03, 18), dob);
-
-				ret = conn.ExecuteNonQuery("delete from Person");
-				Assert.AreEqual(1, ret);
+				var company = conn.ExecuteScalar<int>("select top 1 CompanyID from Employee where Name=@Name", new { Name = "Hermes Conrad" });
+				Assert.AreEqual(1, company);
 			}
 		}
 	}
