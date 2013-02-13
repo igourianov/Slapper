@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using NUnit.Framework;
-using Slapper.Mapping;
+using Slapper.Reflection;
 
 namespace Slapper.Tests
 {
