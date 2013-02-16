@@ -14,12 +14,12 @@ namespace Slapper
 		static ConcurrentDictionary<string, object> ObjectMapCache = new ConcurrentDictionary<string, object>();
 		static ConcurrentDictionary<string, object> ValueMapCache = new ConcurrentDictionary<string, object>();
 
-		static Func<IDataRecord, T> GetOrCreateObjectMap<T>(string sql, IDataReader reader)
+		static Func<IDataRecord, T> GetOrCreateMap<T>(string sql, IDataReader reader)
 		{
 			var t = typeof(T);
 			var key = t.FullName + ":" + sql;
 			
-			if (t.IsValueType || t == typeof(String))
+			if (t.IsValueType || t == typeof(String) || t == typeof(byte[]))
 				return (Func<IDataRecord, T>)ValueMapCache.GetOrAdd(key, (s) => DataReaderMapper.CreateValueMapper<T>(reader));
 			return (Func<IDataRecord, T>)ObjectMapCache.GetOrAdd(key, (s) => DataReaderMapper.CreateObjectMapper<T>(reader));
 		}
@@ -28,7 +28,7 @@ namespace Slapper
 		{
 			using (var reader = conn.ExecuteReader(sql, args))
 			{
-				var map = GetOrCreateObjectMap<T>(sql, reader);
+				var map = GetOrCreateMap<T>(sql, reader);
 				while (reader.Read())
 					yield return map(reader);
 			}
@@ -40,8 +40,8 @@ namespace Slapper
 		{
 			using (var reader = conn.ExecuteReader(sql, args, CommandBehavior.SingleResult | CommandBehavior.KeyInfo))
 			{
-				var map1 = GetOrCreateObjectMap<T1>(sql, reader);
-				var map2 = GetOrCreateObjectMap<T2>(sql, reader);
+				var map1 = GetOrCreateMap<T1>(sql, reader);
+				var map2 = GetOrCreateMap<T2>(sql, reader);
 				while (reader.Read())
 					yield return Tuple.Create(map1(reader), map2(reader));
 			}
@@ -54,9 +54,9 @@ namespace Slapper
 		{
 			using (var reader = conn.ExecuteReader(sql, args, CommandBehavior.SingleResult | CommandBehavior.KeyInfo))
 			{
-				var map1 = GetOrCreateObjectMap<T1>(sql, reader);
-				var map2 = GetOrCreateObjectMap<T2>(sql, reader);
-				var map3 = GetOrCreateObjectMap<T3>(sql, reader);
+				var map1 = GetOrCreateMap<T1>(sql, reader);
+				var map2 = GetOrCreateMap<T2>(sql, reader);
+				var map3 = GetOrCreateMap<T3>(sql, reader);
 				while (reader.Read())
 					yield return Tuple.Create(map1(reader), map2(reader), map3(reader));
 			}

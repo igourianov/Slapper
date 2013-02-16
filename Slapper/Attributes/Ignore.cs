@@ -6,13 +6,8 @@ using System.Threading.Tasks;
 
 namespace Slapper.Attributes
 {
-	public class EntityField : SlapperAttribute
+	// marker for members that shold not be mapped
+	public class Ignore : SlapperAttribute
 	{
-		public string Name;
-
-		public EntityField(string name)
-		{
-			Name = name;
-		}
 	}
 }

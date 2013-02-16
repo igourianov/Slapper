@@ -49,6 +49,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="Model.cs" />
     <Compile Include="QueryTests.cs" />
     <Compile Include="ParameterReaderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

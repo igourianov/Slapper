@@ -79,7 +79,7 @@ inner join Company c on(c.ID=e.CompanyID)
 
 		public class GoodEmployee
 		{
-			[EntityField("ID")]
+			[Field("ID")]
 			public int EmployeeID;
 			public string Name { get; set; }
 			public int? CompanyID;

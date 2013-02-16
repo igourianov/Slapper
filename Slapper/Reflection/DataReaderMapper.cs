@@ -46,7 +46,7 @@ namespace Slapper.Reflection
 				.Where(x => x.CanWrite && x.GetIndexParameters().Length == 0)
 				.Cast<MemberInfo>()
 				.Concat(t.GetFields(MemberFlags).Where(x => !x.IsInitOnly))
-				.Where(x => !x.GetCustomAttributes<IgnoreField>().Any())
+				.Where(x => !x.GetCustomAttributes<Ignore>().Any())
 				.ToList();
 
 			var readerInstance = Expression.Parameter(typeof(IDataRecord), "reader");
@@ -56,7 +56,7 @@ namespace Slapper.Reflection
 
 			foreach (var m in members)
 			{
-				var attr = m.GetCustomAttributes<EntityField>().FirstOrDefault();
+				var attr = m.GetCustomAttributes<Field>().FirstOrDefault();
 				var name = (attr != null && attr.Name != null ? attr.Name : m.Name).ToLower();
 				var col = schema.FirstOrDefault(x => x.Name == name && x.Table == tableName)
 					?? schema.FirstOrDefault(x => x.Name == name && String.IsNullOrEmpty(x.Table));
