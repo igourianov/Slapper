@@ -1,22 +1,22 @@
-// Slappergen
+// Slappergen Model
 using System;
-using System.Collections.Generic;
 using Slapper.Attributes;
 
 namespace Slapper.Tests.Model
 {
-	[Entity("Company", true)]
+	[Entity("Company")]
 	public partial class Company
 	{
-		[Field("ID")]
-		private Int32 _ID_Value;
+		[Key("ID", true)]
+		private Int32? _ID_Value;
 		[Modified("ID")]
 		private bool _ID_Modified;
 		[Ignore]
-		public virtual Int32 ID
+		public virtual Int32? ID
 		{
 			get { return _ID_Value; }
-			set {
+			set
+			{
 				if (_ID_Value != value)
 					_ID_Modified = true;
 				_ID_Value = value;
@@ -30,25 +30,27 @@ namespace Slapper.Tests.Model
 		public virtual String Name
 		{
 			get { return _Name_Value; }
-			set {
+			set
+			{
 				if (_Name_Value != value)
 					_Name_Modified = true;
 				_Name_Value = value;
 			}
 		}
 	}
-	[Entity("Employee", true)]
+	[Entity("Employee")]
 	public partial class Employee
 	{
-		[Field("ID")]
-		private Int32 _ID_Value;
+		[Key("ID", true)]
+		private Int32? _ID_Value;
 		[Modified("ID")]
 		private bool _ID_Modified;
 		[Ignore]
-		public virtual Int32 ID
+		public virtual Int32? ID
 		{
 			get { return _ID_Value; }
-			set {
+			set
+			{
 				if (_ID_Value != value)
 					_ID_Modified = true;
 				_ID_Value = value;
@@ -62,21 +64,23 @@ namespace Slapper.Tests.Model
 		public virtual String Name
 		{
 			get { return _Name_Value; }
-			set {
+			set
+			{
 				if (_Name_Value != value)
 					_Name_Modified = true;
 				_Name_Value = value;
 			}
 		}
 		[Field("CompanyID")]
-		private Int32 _CompanyID_Value;
+		private Int32? _CompanyID_Value;
 		[Modified("CompanyID")]
 		private bool _CompanyID_Modified;
 		[Ignore]
-		public virtual Int32 CompanyID
+		public virtual Int32? CompanyID
 		{
 			get { return _CompanyID_Value; }
-			set {
+			set
+			{
 				if (_CompanyID_Value != value)
 					_CompanyID_Modified = true;
 				_CompanyID_Value = value;

@@ -21,9 +21,8 @@ namespace Slappergen
 			{
 				conn.Open();
 
-				writer.WriteLine(@"// Slappergen
+				writer.WriteLine(@"// Slappergen Model
 using System;
-using System.Collections.Generic;
 using Slapper.Attributes;
 
 namespace {0}
@@ -39,7 +38,7 @@ namespace {0}
 			foreach (var table in conn.Query<string>(@"select name from sysobjects where xtype='U'").ToList())
 			{
 				var className = MakeCSharpName(table);
-				writer.WriteLine(@"	[Entity(""{0}"", true)]
+				writer.WriteLine(@"	[Entity(""{0}"")]
 	public partial class {1}
 	{{", table, className);
 
@@ -52,7 +51,7 @@ namespace {0}
 					else
 						writer.WriteLine("		[Field(\"{0}\")]", col.Name);
 
-					writer.WriteLine("		private {0} _{1}_Value;", col.Type.Name, memberName);
+					writer.WriteLine("		private {0} _{1}_Value;", GetTypeName(col.Type), memberName);
 
 					if (!col.IsComputed)
 						writer.WriteLine(@"		[Modified(""{0}"")]
@@ -61,11 +60,12 @@ namespace {0}
 					writer.WriteLine(@"		[Ignore]
 		public virtual {0} {1}
 		{{
-			get {{ return _{1}_Value; }}", col.Type.Name, memberName);
+			get {{ return _{1}_Value; }}", GetTypeName(col.Type), memberName);
 
 					if (!col.IsComputed)
 					{
-						writer.WriteLine("			set {");
+						writer.WriteLine(@"			set
+			{");
 						if (col.Type.IsValueType || col.Type == typeof(string))
 						{
 							writer.WriteLine(@"				if (_{0}_Value != value)
@@ -87,6 +87,11 @@ namespace {0}
 			}
 		}
 
+		static string GetTypeName(Type t)
+		{
+			return t.Name + (t.IsValueType ? "?" : "");
+		}
+
 		static string MakeCSharpName(string name)
 		{
 			name = Regex.Replace(name, @"[^0-9a-zA-Z]+", "_", RegexOptions.Compiled).Trim('_');
@@ -101,14 +106,28 @@ namespace {0}
 			using (var reader = conn.ExecuteReader("select top 0 * from [" + table + "]", null,
 				CommandBehavior.SingleResult | CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo))
 			{
-				for (int i = 0; i < reader.FieldCount; i++)
-					yield return new ColumnInfo { Index = i, Name = reader.GetName(i), Type = reader.GetFieldType(i) };
+				var schema = reader.GetSchemaTable();
+				int columnOrdinal = schema.Columns.IndexOf("ColumnOrdinal");
+				int columnName = schema.Columns.IndexOf("ColumnName");
+				int isKey = schema.Columns.IndexOf("IsKey");
+				int isIdentity = schema.Columns.IndexOf("IsIdentity");
+				int isComputed = schema.Columns.IndexOf("IsExpression");
+
+				var types = Enumerable.Range(0, reader.FieldCount).Select(x => reader.GetFieldType(x)).ToList();
+
+				return schema.Rows.Cast<DataRow>()
+					.Select(x => new ColumnInfo {
+						Name = x.Field<string>(columnName),
+						Type = types[x.Field<int>(columnOrdinal)],
+						IsKey = isKey == -1 ? false : x.Field<bool>(isKey),
+						IsIdentity = isIdentity == -1 ? false : x.Field<bool>(isIdentity),
+						IsComputed = isComputed == -1 ? false : x.Field<bool>(isComputed),
+					});
 			}
 		}
 
 		public class ColumnInfo
 		{
-			public int Index;
 			public string Name;
 			public Type Type;
 			public bool IsKey;

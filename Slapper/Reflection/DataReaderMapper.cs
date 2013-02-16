@@ -40,7 +40,6 @@ namespace Slapper.Reflection
 			var t = typeof(T);
 			var entity = t.GetCustomAttributes<Entity>().FirstOrDefault();
 			var tableName = (entity != null && entity.Table != null ? entity.Table : t.Name).ToLower();
-			var explicitLayout = entity != null ? entity.ExplicitLayout : false;
 			var schema = GetSchema(reader).ToList();
 			var members = t.GetProperties(MemberFlags)
 				.Where(x => x.CanWrite && x.GetIndexParameters().Length == 0)
@@ -61,7 +60,7 @@ namespace Slapper.Reflection
 				var col = schema.FirstOrDefault(x => x.Name == name && x.Table == tableName)
 					?? schema.FirstOrDefault(x => x.Name == name && String.IsNullOrEmpty(x.Table));
 
-				if (col != null && (!explicitLayout || attr != null))
+				if (col != null)
 					body.Add(AssignValue(objectInstance, m, readerInstance, col.Getter, col.Index));
 			}
 

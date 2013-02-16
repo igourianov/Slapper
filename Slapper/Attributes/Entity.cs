@@ -9,17 +9,10 @@ namespace Slapper.Attributes
 	public class Entity : SlapperAttribute
 	{
 		public string Table;
-		public bool ExplicitLayout;
-
-		public Entity(string table, bool explicitLayout)
-		{
-			Table = table;
-			ExplicitLayout = explicitLayout;
-		}
 
 		public Entity(string table)
-			: this(table, false)
 		{
+			Table = table;
 		}
 	}
 }
