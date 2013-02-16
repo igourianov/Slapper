@@ -23,11 +23,10 @@ namespace Slapper
 		}
 
 		public static IEnumerable<T> Query<T>(this IDbConnection conn, string sql, object args = null)
-			where T : new()
 		{
 			using (var reader = conn.ExecuteReader(sql, args))
 			{
-				var map = GetOrCreateObjectMap<T>(sql, reader);
+				var map = GetOrCreateObjectMap<T>(typeof(T).FullName + ":" + sql, reader);
 				while (reader.Read())
 					yield return map(reader);
 			}

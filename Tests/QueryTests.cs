@@ -41,12 +41,37 @@ namespace Slapper.Tests
 			}
 		}
 
+		[TestMethod]
+		public void CheckConnectionFree()
+		{
+			using (var conn = OpenConnection())
+			{
+				var x = conn.Query<string>("select Name from Employee").First();
+				var y = conn.Query<string>("select Name from Employee").First();
+			}
+		}
+
+		[TestMethod, ExpectedException(typeof(Slapper.Reflection.DataReaderMapper.MemberMappingException))]
+		public void CheckBindException()
+		{
+			using (var conn = OpenConnection())
+			{
+				var list = conn.Query<BadEmployee>("select * from Employee").ToList();
+			}
+		}
+
 		public class Employee
 		{
 			[EntityField("ID")]
 			public int EmployeeID;
 			public string Name;
 			public int? CompanyID;
+		}
+
+		public class BadEmployee
+		{
+			public DateTime ID;
+			public string Name;
 		}
 	}
 }

@@ -77,8 +77,15 @@ namespace Slapper.Reflection
 
 			Expression right = Expression.Call(reader, getter, Expression.Constant(index));
 
-			if (left.Type != right.Type)
-				right = Expression.Convert(right, left.Type);
+			try
+			{
+				if (left.Type != right.Type)
+					right = Expression.Convert(right, left.Type);
+			}
+			catch (InvalidOperationException e)
+			{
+				throw new MemberMappingException(obj.Type, member, e);
+			}
 
 			return Expression.Assign(left, right);
 		}		
@@ -109,6 +116,14 @@ namespace Slapper.Reflection
 			public string Name;
 			//public string Table;
 			public MethodInfo Getter;
+		}
+
+		public class MemberMappingException : Exception
+		{
+			public MemberMappingException(Type obj, MemberInfo member, Exception e)
+				: base(String.Format("Error mapping {0}.{1}", obj.FullName, member.Name), e)
+			{
+			}
 		}
 	}
 }
