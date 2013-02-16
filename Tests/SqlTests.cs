@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Slapper;
+﻿using System.Configuration;
 using System.Data.SqlClient;
-using System.Configuration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Slapper.Tests
 {
-	[TestFixture]
+	[TestClass]
 	public class SqlTests
 	{
 		private SqlConnection OpenConnection()
@@ -20,7 +14,7 @@ namespace Slapper.Tests
 			return conn;
 		}
 
-		[Test]
+		[TestMethod]
 		public void BasicRead()
 		{
 			using (var conn = OpenConnection())
@@ -28,7 +22,7 @@ namespace Slapper.Tests
 				using (var reader = conn.ExecuteReader("select top 1 * from Employee where Name like @Name", new { Name = "Zapp%" }))
 				{
 					Assert.IsTrue(reader.Read());
-					Assert.Greater((int)reader["ID"], 0);
+					Assert.AreNotEqual((int)reader["ID"], 0);
 					Assert.AreEqual("Zapp Brannigan", reader["Name"]);
 				}
 

@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Slapper.Tests
 {
-	[SetUpFixture]
+	[TestClass]
 	public class SetupDatabase
 	{
-		[SetUp]
-		public void Setup()
+		[AssemblyInitializeAttribute]
+		public static void Setup(TestContext context)
 		{
 			using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["Test"].ConnectionString))
 			{

@@ -12,28 +12,12 @@ namespace Slapper.Reflection
 {
 	public static class DataReaderMapper
 	{
-		static Type[] Types;
 		static MethodInfo[] Getters;
 		static MethodInfo IsDBNull;
 		static BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
 		static DataReaderMapper()
 		{
-			Types = new Type[] {
-				typeof(bool),
-				typeof(byte),
-				typeof(byte[]),
-				typeof(char),
-				typeof(DateTime),
-				typeof(decimal),
-				typeof(double),
-				typeof(float),
-				typeof(Guid),
-				typeof(short),
-				typeof(int),
-				typeof(long),
-				typeof(string)
-			};
 			IsDBNull = typeof(IDataRecord).GetMethod("IsDBNull", new Type[] { typeof(int) });
 			Getters = typeof(IDataRecord).GetMethods(BindingFlags.Public | BindingFlags.Instance)
 				.Where(x => x.Name.StartsWith("Get"))
@@ -42,102 +26,89 @@ namespace Slapper.Reflection
 				.ToArray();
 		}
 
-		public static Func<IDataReader, T, T> CreateMapper<T>(IDataReader reader, bool filterByTable)
+		public static Func<IDataRecord, T> CreateValueMapper<T>(IDataReader reader)
+		{
+			var readerInstance = Expression.Parameter(typeof(IDataRecord), "reader");
+			Expression expr = Expression.Call(readerInstance, GetSchema(reader).First().Getter, Expression.Constant(0));
+			if (!typeof(T).IsAssignableFrom(expr.Type))
+				expr = Expression.Convert(expr, typeof(T));
+			return Expression.Lambda<Func<IDataRecord, T>>(expr, readerInstance).Compile();
+		}
+
+		public static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
 		{
 			var t = typeof(T);
 			var entity = t.GetCustomAttributes<Entity>().FirstOrDefault();
 			var explicitLayout = entity != null ? entity.ExplicitLayout : false;
-			var tableName = (entity != null && entity.Table != null ? entity.Table : t.Name).ToLower();
+			var schema = GetSchema(reader).ToList();
+			var members = t.GetProperties(MemberFlags)
+				.Where(x => x.CanWrite && x.GetIndexParameters().Length == 0)
+				.Cast<MemberInfo>()
+				.Concat(t.GetFields(MemberFlags).Where(x => !x.IsInitOnly))
+				.Where(x => !x.GetCustomAttributes<IgnoreField>().Any())
+				.ToList();
 
-			var members = GetMembers(t).ToList();
-			var schema = GetSchema(reader, filterByTable).ToList();
-
-			List<Expression> assignments = new List<Expression>();
-			var readerInstance = Expression.Parameter(typeof(IDataReader), "reader");
+			var readerInstance = Expression.Parameter(typeof(IDataRecord), "reader");
 			var objectInstance = Expression.Parameter(t, "obj");
+			List<Expression> body = new List<Expression>();
+			body.Add(Expression.Assign(objectInstance, Expression.New(t)));
 
 			foreach (var m in members)
 			{
-				var field = m.GetCustomAttributes<EntityField>().FirstOrDefault();
-				if (!explicitLayout || field != null)
-				{
-					var name = (field != null && field.Name != null ? field.Name : m.Name).ToLower();
-					var col = schema.FirstOrDefault(x => x.Name == name && (!filterByTable || x.Table == tableName || x.Table == null));
+				var attr = m.GetCustomAttributes<EntityField>().FirstOrDefault();
+				var name = (attr != null && attr.Name != null ? attr.Name : m.Name).ToLower();
+				var col = schema.FirstOrDefault(x => x.Name == name);
 
-					if (col != null)
-						assignments.Add(AssignValue(objectInstance, m, readerInstance, col.Index));
-				}
+				if (col != null && (!explicitLayout || attr != null))
+					body.Add(AssignValue(objectInstance, m, readerInstance, col.Getter, col.Index));
 			}
 
-			assignments.Add(objectInstance); // return value
+			body.Add(objectInstance); // return value
 
-			return Expression.Lambda<Func<IDataReader, T, T>>(Expression.Block(t, assignments), readerInstance, objectInstance).Compile();
+			var block = Expression.Block(t, new ParameterExpression[] { objectInstance }, body);
+			return Expression.Lambda<Func<IDataRecord, T>>(block, readerInstance).Compile();
 		}
 
-		static Expression AssignValue(Expression obj, MemberInfo member, Expression reader, int index)
+		static Expression AssignValue(Expression obj, MemberInfo member, Expression reader, MethodInfo getter, int index)
 		{
 			Expression left = member is FieldInfo
 				? Expression.Field(obj, (FieldInfo)member)
 				: Expression.Property(obj, (PropertyInfo)member);
 
-			var right = ReadValue(reader, index, left.Type);
-			if (!left.Type.IsAssignableFrom(right.Type))
+			Expression right = Expression.Call(reader, getter, Expression.Constant(index));
+
+			if (left.Type != right.Type)
 				right = Expression.Convert(right, left.Type);
 
 			return Expression.Assign(left, right);
+		}		
+
+		static IEnumerable<ReaderColumn> GetSchema(IDataReader reader)
+		{
+			for (int i = 0; i < reader.FieldCount; i++)
+			{
+				yield return new ReaderColumn {
+					Index = i,
+					Name = reader.GetName(i).ToLower(),
+					Getter = FindGetter(reader.GetFieldType(i)),
+				};
+			}
 		}
 
-		static Expression ReadValue(Expression reader, int index, Type type)
+		static MethodInfo FindGetter(Type type)
 		{
 			var getterName = "Get" + (!type.IsNullable() ? type.Name : type.GetGenericArguments()[0].Name);
 			if (getterName == "GetSingle")
 				getterName = "GetFloat";
-			if (getterName == "GetByte[]")
-				getterName = "GetValue";
-			var method = Getters.FirstOrDefault(x => x.Name == getterName);
-			return Expression.Call(reader, method, Expression.Constant(index));
-		}
-
-		static IEnumerable<MemberInfo> GetMembers(Type t)
-		{
-			return t.GetProperties(MemberFlags)
-				.Where(x => x.CanWrite && x.GetIndexParameters().Length == 0 && Types.Contains(x.PropertyType))
-				.Cast<MemberInfo>()
-				.Concat(t.GetFields(MemberFlags).Where(x => !x.IsInitOnly && Types.Contains(x.FieldType)))
-				.Where(x => !x.GetCustomAttributes<IgnoreField>().Any());
-		}
-
-		static IEnumerable<ReaderColumn> GetSchema(IDataReader reader, bool includeTable)
-		{
-			if (!includeTable)
-			{
-				for (int i = 0; i < reader.FieldCount; i++)
-					yield return new ReaderColumn { Index = i, Name = reader.GetName(i) };
-			}
-			else
-			{
-				var schema = reader.GetSchemaTable();
-				int ordinalIndex = schema.Columns.IndexOf("ColumnOrdinal");
-				int nameIndex = schema.Columns.IndexOf("ColumnName");
-				int tableIndex = schema.Columns.IndexOf("BaseTableName");
-
-				for (int i = 0; i < schema.Rows.Count; i++)
-				{
-					var row = schema.Rows[i];
-					yield return new ReaderColumn { 
-						Index = row.Field<int>(ordinalIndex),
-						Name = row.Field<string>(nameIndex).ToLower(),
-						Table = tableIndex > -1 ? row.Field<string>(tableIndex).ToLower() : null
-					};
-				}
-			}
+			return Getters.FirstOrDefault(x => x.Name == getterName) ?? Getters.FirstOrDefault(x => x.Name == "GetValue");
 		}
 
 		private class ReaderColumn
 		{
 			public int Index;
 			public string Name;
-			public string Table;
+			//public string Table;
+			public MethodInfo Getter;
 		}
 	}
 }
