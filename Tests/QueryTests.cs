@@ -22,8 +22,8 @@ namespace Slapper.Tests
 		{
 			using (var conn = OpenConnection())
 			{
-				var list = conn.Query<Employee>("select * from Employee").ToList();
-				Assert.AreNotEqual(list.Count, 0);
+				var list = conn.Query<GoodEmployee>("select * from Employee").ToList();
+				Assert.AreNotEqual(0, list.Count);
 				Assert.IsFalse(list.Any(x => x.EmployeeID == 0));
 				Assert.IsFalse(list.Any(x => String.IsNullOrEmpty(x.Name)));
 				Assert.IsFalse(list.Any(x => x.CompanyID == null));
@@ -36,7 +36,7 @@ namespace Slapper.Tests
 			using (var conn = OpenConnection())
 			{
 				var list = conn.Query<int>("select ID from Employee").ToList();
-				Assert.AreNotEqual(list.Count, 0);
+				Assert.AreNotEqual(0, list.Count);
 				Assert.IsFalse(list.Any(x => x == 0));
 			}
 		}
@@ -60,17 +60,47 @@ namespace Slapper.Tests
 			}
 		}
 
-		public class Employee
+		[TestMethod]
+		public void QueryObjectTuple()
+		{
+			using (var conn = OpenConnection())
+			{
+				var list = conn.Query<Employee, Company>(@"
+select *
+from Employee e
+inner join Company c on(c.ID=e.CompanyID)
+").ToList();
+				
+				Assert.AreNotEqual(0, list.Count);
+				Assert.IsFalse(list.All(x => x.Item1.ID == x.Item2.ID));
+				Assert.IsFalse(list.All(x => x.Item1.Name == x.Item2.Name));
+			}
+		}
+
+		public class GoodEmployee
 		{
 			[EntityField("ID")]
 			public int EmployeeID;
-			public string Name;
+			public string Name { get; set; }
 			public int? CompanyID;
 		}
 
 		public class BadEmployee
 		{
 			public DateTime ID;
+			public string Name;
+		}
+
+		public class Employee
+		{
+			public int ID;
+			public string Name;
+			public int CompanyID;
+		}
+
+		public class Company
+		{
+			public int ID;
 			public string Name;
 		}
 	}

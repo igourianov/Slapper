@@ -14,9 +14,11 @@ namespace Slapper
 		static ConcurrentDictionary<string, object> ObjectMapCache = new ConcurrentDictionary<string, object>();
 		static ConcurrentDictionary<string, object> ValueMapCache = new ConcurrentDictionary<string, object>();
 
-		static Func<IDataRecord, T> GetOrCreateObjectMap<T>(string key, IDataReader reader)
+		static Func<IDataRecord, T> GetOrCreateObjectMap<T>(string sql, IDataReader reader)
 		{
 			var t = typeof(T);
+			var key = t.FullName + ":" + sql;
+			
 			if (t.IsValueType || t == typeof(String))
 				return (Func<IDataRecord, T>)ValueMapCache.GetOrAdd(key, (s) => DataReaderMapper.CreateValueMapper<T>(reader));
 			return (Func<IDataRecord, T>)ObjectMapCache.GetOrAdd(key, (s) => DataReaderMapper.CreateObjectMapper<T>(reader));
@@ -26,9 +28,37 @@ namespace Slapper
 		{
 			using (var reader = conn.ExecuteReader(sql, args))
 			{
-				var map = GetOrCreateObjectMap<T>(typeof(T).FullName + ":" + sql, reader);
+				var map = GetOrCreateObjectMap<T>(sql, reader);
 				while (reader.Read())
 					yield return map(reader);
+			}
+		}
+
+		public static IEnumerable<Tuple<T1,T2>> Query<T1, T2>(this IDbConnection conn, string sql, object args = null)
+			where T1 : class, new()
+			where T2 : class, new()
+		{
+			using (var reader = conn.ExecuteReader(sql, args, CommandBehavior.SingleResult | CommandBehavior.KeyInfo))
+			{
+				var map1 = GetOrCreateObjectMap<T1>(sql, reader);
+				var map2 = GetOrCreateObjectMap<T2>(sql, reader);
+				while (reader.Read())
+					yield return Tuple.Create(map1(reader), map2(reader));
+			}
+		}
+
+		public static IEnumerable<Tuple<T1, T2, T3>> Query<T1, T2, T3>(this IDbConnection conn, string sql, object args = null)
+			where T1 : class, new()
+			where T2 : class, new()
+			where T3 : class, new()
+		{
+			using (var reader = conn.ExecuteReader(sql, args, CommandBehavior.SingleResult | CommandBehavior.KeyInfo))
+			{
+				var map1 = GetOrCreateObjectMap<T1>(sql, reader);
+				var map2 = GetOrCreateObjectMap<T2>(sql, reader);
+				var map3 = GetOrCreateObjectMap<T3>(sql, reader);
+				while (reader.Read())
+					yield return Tuple.Create(map1(reader), map2(reader), map3(reader));
 			}
 		}
 	}

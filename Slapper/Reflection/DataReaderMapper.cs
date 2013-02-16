@@ -39,6 +39,7 @@ namespace Slapper.Reflection
 		{
 			var t = typeof(T);
 			var entity = t.GetCustomAttributes<Entity>().FirstOrDefault();
+			var tableName = (entity != null && entity.Table != null ? entity.Table : t.Name).ToLower();
 			var explicitLayout = entity != null ? entity.ExplicitLayout : false;
 			var schema = GetSchema(reader).ToList();
 			var members = t.GetProperties(MemberFlags)
@@ -57,7 +58,8 @@ namespace Slapper.Reflection
 			{
 				var attr = m.GetCustomAttributes<EntityField>().FirstOrDefault();
 				var name = (attr != null && attr.Name != null ? attr.Name : m.Name).ToLower();
-				var col = schema.FirstOrDefault(x => x.Name == name);
+				var col = schema.FirstOrDefault(x => x.Name == name && x.Table == tableName)
+					?? schema.FirstOrDefault(x => x.Name == name && String.IsNullOrEmpty(x.Table));
 
 				if (col != null && (!explicitLayout || attr != null))
 					body.Add(AssignValue(objectInstance, m, readerInstance, col.Getter, col.Index));
@@ -88,16 +90,21 @@ namespace Slapper.Reflection
 			}
 
 			return Expression.Assign(left, right);
-		}		
+		}
 
 		static IEnumerable<ReaderColumn> GetSchema(IDataReader reader)
 		{
+			var tableMap = reader.GetSchemaTable().Rows.Cast<DataRow>()
+				.Select(x => new { Index = x.Field<int>("ColumnOrdinal"), Table = x.Field<string>("BaseTableName") })
+				.ToList();
+
 			for (int i = 0; i < reader.FieldCount; i++)
 			{
 				yield return new ReaderColumn {
 					Index = i,
 					Name = reader.GetName(i).ToLower(),
 					Getter = FindGetter(reader.GetFieldType(i)),
+					Table = (tableMap.Where(x => x.Index == i).Select(x => x.Table).FirstOrDefault() ?? "").ToLower(),
 				};
 			}
 		}
@@ -114,7 +121,7 @@ namespace Slapper.Reflection
 		{
 			public int Index;
 			public string Name;
-			//public string Table;
+			public string Table;
 			public MethodInfo Getter;
 		}
 
