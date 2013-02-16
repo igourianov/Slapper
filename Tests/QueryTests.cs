@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Slapper.Attributes;
+using Slapper.Tests.Model;
 
 namespace Slapper.Tests
 {
@@ -22,9 +23,9 @@ namespace Slapper.Tests
 		{
 			using (var conn = OpenConnection())
 			{
-				var list = conn.Query<GoodEmployee>("select * from Employee").ToList();
+				var list = conn.Query<Employee>("select * from Employee").ToList();
 				Assert.AreNotEqual(0, list.Count);
-				Assert.IsFalse(list.Any(x => x.EmployeeID == 0));
+				Assert.IsFalse(list.Any(x => x.ID == 0));
 				Assert.IsFalse(list.Any(x => String.IsNullOrEmpty(x.Name)));
 				Assert.IsFalse(list.Any(x => x.CompanyID == null));
 			}
@@ -77,31 +78,11 @@ inner join Company c on(c.ID=e.CompanyID)
 			}
 		}
 
-		public class GoodEmployee
-		{
-			[Field("ID")]
-			public int EmployeeID;
-			public string Name { get; set; }
-			public int? CompanyID;
-		}
-
 		public class BadEmployee
 		{
 			public DateTime ID;
 			public string Name;
 		}
 
-		public class Employee
-		{
-			public int ID;
-			public string Name;
-			public int CompanyID;
-		}
-
-		public class Company
-		{
-			public int ID;
-			public string Name;
-		}
 	}
 }

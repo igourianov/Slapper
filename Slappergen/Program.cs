@@ -53,7 +53,7 @@ namespace {0}
 
 					writer.WriteLine("		private {0} _{1}_Value;", GetTypeName(col.Type), memberName);
 
-					if (!col.IsComputed)
+					if (!col.IsComputed || col.IsIdentity)
 						writer.WriteLine(@"		[Modified(""{0}"")]
 		private bool _{1}_Modified;", col.Name, memberName);
 
@@ -62,7 +62,7 @@ namespace {0}
 		{{
 			get {{ return _{1}_Value; }}", GetTypeName(col.Type), memberName);
 
-					if (!col.IsComputed)
+					if (!col.IsComputed || col.IsIdentity)
 					{
 						writer.WriteLine(@"			set
 			{");
@@ -111,7 +111,7 @@ namespace {0}
 				int columnName = schema.Columns.IndexOf("ColumnName");
 				int isKey = schema.Columns.IndexOf("IsKey");
 				int isIdentity = schema.Columns.IndexOf("IsIdentity");
-				int isComputed = schema.Columns.IndexOf("IsExpression");
+				int isComputed = schema.Columns.IndexOf("IsReadOnly");
 
 				var types = Enumerable.Range(0, reader.FieldCount).Select(x => reader.GetFieldType(x)).ToList();
 
