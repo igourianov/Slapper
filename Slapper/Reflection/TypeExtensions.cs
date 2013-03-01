@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Slapper.Reflection
@@ -21,6 +22,13 @@ namespace Slapper.Reflection
 		public static bool IsNullableOf(this Type type, Type t)
 		{
 			return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && type.GetGenericArguments()[0] == t;
+		}
+
+		public static Expression MemberExpression(this MemberInfo member, Expression instance)
+		{
+			return member is FieldInfo
+				? Expression.Field(instance, (FieldInfo)member)
+				: Expression.Property(instance, (PropertyInfo)member);
 		}
 	}
 }

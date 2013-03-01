@@ -9,21 +9,31 @@ namespace Slapper.Attributes
 	public class Field : SlapperAttribute
 	{
 		public string Name;
+		public FieldFlags Flags;
 
-		public Field(string name)
+		public Field(string name, FieldFlags flags)
 		{
 			Name = name;
+			Flags = flags;
+		}
+
+		public Field(string name)
+			 : this(name, FieldFlags.None)
+		{
+		}
+
+		public Field()
+			: this(null)
+		{
 		}
 	}
 
-	public class Key : Field
+	[Flags]
+	public enum FieldFlags
 	{
-		public bool IsIdentity;
-
-		public Key(string name, bool isIdentity)
-			: base(name)
-		{
-			IsIdentity = isIdentity;
-		}
+		None = 0,
+		Key = 1,
+		ReadOnly = 2,
+		Identity = 4,
 	}
 }

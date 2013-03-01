@@ -72,10 +72,7 @@ namespace Slapper.Reflection
 
 		static Expression AssignValue(Expression obj, MemberInfo member, Expression reader, MethodInfo getter, int index)
 		{
-			Expression left = member is FieldInfo
-				? Expression.Field(obj, (FieldInfo)member)
-				: Expression.Property(obj, (PropertyInfo)member);
-
+			Expression left = member.MemberExpression(obj);
 			Expression right = Expression.Call(reader, getter, Expression.Constant(index));
 
 			try

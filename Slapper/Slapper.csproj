@@ -46,9 +46,11 @@
     <Compile Include="Attributes\SlapperAttribute.cs" />
     <Compile Include="QueryExtensions.cs" />
     <Compile Include="Reflection\DataReaderMapper.cs" />
+    <Compile Include="Reflection\EntityMapper.cs" />
     <Compile Include="Reflection\TypeExtensions.cs" />
     <Compile Include="Reflection\ParameterReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SaveExtensions.cs" />
     <Compile Include="SqlExtensions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -49,12 +49,13 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="Utils\EntityMapperTests.cs" />
     <Compile Include="Model.cs" />
-    <Compile Include="QueryTests.cs" />
-    <Compile Include="ParameterReaderTests.cs" />
+    <Compile Include="DB\QueryTests.cs" />
+    <Compile Include="Utils\ParameterReaderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SetupDatabase.cs" />
-    <Compile Include="SqlTests.cs" />
+    <Compile Include="DB\SetupDatabase.cs" />
+    <Compile Include="DB\SqlTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

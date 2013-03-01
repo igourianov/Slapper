@@ -46,14 +46,25 @@ namespace {0}
 				{
 					var memberName = MakeCSharpName(col.Name);
 
-					if (col.IsKey)
-						writer.WriteLine("		[Key(\"{0}\", {1})]", col.Name, col.IsIdentity.ToString().ToLower());
+					var flags = new string[] {
+						col.IsKey ? "Key" : null,
+						col.IsReadOnly ? "ReadOnly" : null,
+						col.IsIdentity ? "Identity" : null,
+					}
+					.Where(x => x != null)
+					.Select(x => "FieldFlags." + x)
+					.ToArray();
+
+					writer.WriteLine("		#region {0}", col.Name);
+
+					if (flags.Length > 0)
+						writer.WriteLine("		[Field(\"{0}\", {1})]", col.Name, String.Join(" | ", flags));
 					else
 						writer.WriteLine("		[Field(\"{0}\")]", col.Name);
 
 					writer.WriteLine("		private {0} _{1}_Value;", GetTypeName(col.Type), memberName);
 
-					if (!col.IsComputed || col.IsIdentity)
+					if (!col.IsReadOnly || col.IsIdentity)
 						writer.WriteLine(@"		[Modified(""{0}"")]
 		private bool _{1}_Modified;", col.Name, memberName);
 
@@ -62,7 +73,7 @@ namespace {0}
 		{{
 			get {{ return _{1}_Value; }}", GetTypeName(col.Type), memberName);
 
-					if (!col.IsComputed || col.IsIdentity)
+					if (!col.IsReadOnly || col.IsIdentity)
 					{
 						writer.WriteLine(@"			set
 			{");
@@ -81,6 +92,7 @@ namespace {0}
 						writer.WriteLine("			}");
 					}
 					writer.WriteLine("		}");
+					writer.WriteLine("		#endregion");
 				}
 
 				writer.WriteLine("	}");
@@ -111,7 +123,7 @@ namespace {0}
 				int columnName = schema.Columns.IndexOf("ColumnName");
 				int isKey = schema.Columns.IndexOf("IsKey");
 				int isIdentity = schema.Columns.IndexOf("IsIdentity");
-				int isComputed = schema.Columns.IndexOf("IsReadOnly");
+				int isReadOnly = schema.Columns.IndexOf("IsReadOnly");
 
 				var types = Enumerable.Range(0, reader.FieldCount).Select(x => reader.GetFieldType(x)).ToList();
 
@@ -121,7 +133,7 @@ namespace {0}
 						Type = types[x.Field<int>(columnOrdinal)],
 						IsKey = isKey == -1 ? false : x.Field<bool>(isKey),
 						IsIdentity = isIdentity == -1 ? false : x.Field<bool>(isIdentity),
-						IsComputed = isComputed == -1 ? false : x.Field<bool>(isComputed),
+						IsReadOnly = isReadOnly == -1 ? false : x.Field<bool>(isReadOnly),
 					});
 			}
 		}
@@ -131,7 +143,7 @@ namespace {0}
 			public string Name;
 			public Type Type;
 			public bool IsKey;
-			public bool IsComputed;
+			public bool IsReadOnly;
 			public bool IsIdentity;
 		}
 	}

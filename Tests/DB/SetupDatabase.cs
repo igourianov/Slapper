@@ -2,7 +2,7 @@
 using System.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Slapper.Tests
+namespace Slapper.Tests.DB
 {
 	[TestClass]
 	public class SetupDatabase
@@ -32,6 +32,7 @@ create table Company
 (
 	ID int primary key identity(1,1),
 	Name varchar(200) not null,
+	[IndexName] as ((replace(str([ID],(6)),' ','0')+'-')+[Name]) persisted,
 );
 ");
 				conn.ExecuteNonQuery(@"

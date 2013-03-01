@@ -2,7 +2,7 @@
 using System.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Slapper.Tests
+namespace Slapper.Tests.DB
 {
 	[TestClass]
 	public class SqlTests

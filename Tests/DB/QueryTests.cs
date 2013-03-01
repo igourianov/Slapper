@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Slapper.Attributes;
 using Slapper.Tests.Model;
 
-namespace Slapper.Tests
+namespace Slapper.Tests.DB
 {
 	[TestClass]
 	public class QueryTests

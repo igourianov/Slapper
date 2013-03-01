@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Slapper.Reflection;
 
-namespace Slapper.Tests
+namespace Slapper.Tests.Utils
 {
 	[TestClass]
 	public class ParameterReaderTests
