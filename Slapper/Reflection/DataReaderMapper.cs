@@ -35,15 +35,12 @@ namespace Slapper.Reflection
 			return Expression.Lambda<Func<IDataRecord, T>>(RecordValue(record, GetSchema(reader).First(), typeof(T)), record).Compile();
 		}
 
-		public static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader, bool strictTableRules = false)
+		public static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
 		{
 			var t = typeof(T);
 			var attr = t.GetCustomAttributes<Entity>().FirstOrDefault();
 			var tableName = (attr != null && attr.Table != null ? attr.Table : t.Name).ToLower();
-			var schema = GetSchema(reader)
-				.Where(x => !strictTableRules || String.IsNullOrEmpty(x.Table) || x.Table == tableName)
-				.OrderBy(x => String.IsNullOrEmpty(x.Table))
-				.ToList();
+			var schema = GetSchema(reader).OrderBy(x => x.Table != tableName).ToList();
 			var members = GetMembers(t).ToList();
 
 			var record = Expression.Parameter(typeof(IDataRecord), "record");
