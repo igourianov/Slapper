@@ -30,11 +30,21 @@ namespace Slapper.Reflection
 			}
 		}
 
-		public class EntityMap<T>
+		public class Map<T>
 		{
-			public string Name;
+			public string Table;
 			public Func<T, IEnumerable<EntityMapper.Column>> FieldReader;
-			public Action<T> IdentitySetter;
+			public Action<T, int?> IdentitySetter;
+		}
+
+		public static Map<T> CreateMap<T>()
+		{
+			var attr = typeof(T).GetCustomAttribute<Entity>();
+			return new Map<T> {
+				Table = attr != null && attr.Table != null ? attr.Table : typeof(T).Name,
+				FieldReader = CreateFieldReader<T>(),
+				IdentitySetter = CreateIdentitySetter<T>(),
+			};
 		}
 
 		public static Action<T, int?> CreateIdentitySetter<T>()
@@ -50,7 +60,7 @@ namespace Slapper.Reflection
 			var obj = Expression.Parameter(typeof(T), "obj");
 			var value = Expression.Parameter(typeof(int?), "value");
 
-			return Expression.Lambda<Action<T, int?>>(Expression.Assign(member.MemberExpression(obj), value), obj, value).Compile();
+			return Expression.Lambda<Action<T, int?>>(Expression.Assign(Expression.MakeMemberAccess(obj, member), value), obj, value).Compile();
 		}
 
 		public static Func<T, IEnumerable<Column>> CreateFieldReader<T>()
@@ -72,8 +82,8 @@ namespace Slapper.Reflection
 					modifiers.TryGetValue(name, out modifier);
 					values.Add(Expression.New(ColumnCtor,
 						Expression.Constant(name),
-						Expression.Convert(member.MemberExpression(obj), typeof(object)),
-						modifier == null ? (Expression)Expression.Constant((attr.Flags & FieldFlags.ReadOnly) == 0) : modifier.MemberExpression(obj),
+						Expression.Convert(Expression.MakeMemberAccess(obj, member), typeof(object)),
+						modifier == null ? (Expression)Expression.Constant((attr.Flags & FieldFlags.ReadOnly) == 0) : Expression.MakeMemberAccess(obj, modifier),
 						Expression.Constant(attr.Flags)
 					));
 				}

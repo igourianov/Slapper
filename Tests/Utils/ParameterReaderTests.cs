@@ -9,11 +9,10 @@ namespace Slapper.Tests.Utils
 	public class ParameterReaderTests
 	{
 		[TestMethod]
-		public void ReadObject()
+		public void ReadSpecificInterface()
 		{
-			var prms = ParameterReader.Read(new Foo { Bar = "BAR!", Baz = 10 });
-			Assert.AreEqual(2, prms.Count());
-			Assert.IsTrue(prms.Any(x => x.Key == "Bar" && (string)x.Value == "BAR!"));
+			var prms = ParameterReader.Read<IFoo>(new Foo { Bar = "BAR!", Baz = 10 });
+			Assert.AreEqual(1, prms.Count());
 			Assert.IsTrue(prms.Any(x => x.Key == "Baz" && (int)x.Value == 10));
 		}
 
@@ -26,11 +25,16 @@ namespace Slapper.Tests.Utils
 			Assert.IsTrue(prms.Any(x => x.Key == "Baz" && (int)x.Value == 10));
 		}
 
-		public class Foo
+		public class Foo : IFoo
 		{
 			public string Bar;
 			public int Baz { get; set; }
 			private string IgnoreMe = "IGNORE";
+		}
+
+		public interface IFoo
+		{
+			int Baz { get; set; }
 		}
 	}
 }

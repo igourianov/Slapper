@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -24,11 +24,5 @@ namespace Slapper.Reflection
 			return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && type.GetGenericArguments()[0] == t;
 		}
 
-		public static Expression MemberExpression(this MemberInfo member, Expression instance)
-		{
-			return member is FieldInfo
-				? Expression.Field(instance, (FieldInfo)member)
-				: Expression.Property(instance, (PropertyInfo)member);
-		}
 	}
 }

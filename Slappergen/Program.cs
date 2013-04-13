@@ -22,6 +22,7 @@ namespace Slappergen
 				conn.Open();
 
 				writer.WriteLine(@"// Slappergen Model
+#pragma warning disable 414,649
 using System;
 using Slapper.Attributes;
 
@@ -47,52 +48,36 @@ namespace {0}
 					var memberName = MakeCSharpName(col.Name);
 
 					var flags = new string[] {
+						"None",
 						col.IsKey ? "Key" : null,
 						col.IsReadOnly ? "ReadOnly" : null,
 						col.IsIdentity ? "Identity" : null,
 					}
-					.Where(x => x != null)
-					.Select(x => "FieldFlags." + x)
-					.ToArray();
+						.Where(x => x != null)
+						.Select(x => "FieldFlags." + x)
+						.ToArray();
 
-					writer.WriteLine("		#region {0}", col.Name);
-
-					if (flags.Length > 0)
-						writer.WriteLine("		[Field(\"{0}\", {1})]", col.Name, String.Join(" | ", flags));
-					else
-						writer.WriteLine("		[Field(\"{0}\")]", col.Name);
-
-					writer.WriteLine("		private {0} _{1}_Value;", GetTypeName(col.Type), memberName);
-
-					if (!col.IsReadOnly || col.IsIdentity)
-						writer.WriteLine(@"		[Modified(""{0}"")]
-		private bool _{1}_Modified;", col.Name, memberName);
-
-					writer.WriteLine(@"		[Ignore]
+					writer.WriteLine(@"		#region {1}
+		[Field(""{2}"", {3})]
+		private {0} _{1}_Value;
+		[Modified(""{2}"")]
+		private bool _{1}_Modified;
+		[Ignore]
 		public virtual {0} {1}
 		{{
-			get {{ return _{1}_Value; }}", GetTypeName(col.Type), memberName);
-
-					if (!col.IsReadOnly || col.IsIdentity)
-					{
-						writer.WriteLine(@"			set
-			{");
-						if (col.Type.IsValueType || col.Type == typeof(string))
-						{
-							writer.WriteLine(@"				if (_{0}_Value != value)
-					_{0}_Modified = true;
-				_{0}_Value = value;", memberName);
-						}
-						else
-						{
-							writer.WriteLine(@"				_{0}_Modified = true;
-				_{0}_Value = value;", memberName);
-						}
-
-						writer.WriteLine("			}");
-					}
-					writer.WriteLine("		}");
-					writer.WriteLine("		#endregion");
+			get
+			{{
+				return _{1}_Value;
+			}}
+			set
+			{{
+				if (!_{1}_Modified)
+					_{1}_Modified = _{1}_Value != value;
+				_{1}_Value = value;
+			}}
+		}}
+		#endregion
+", GetTypeName(col.Type), memberName, col.Name, String.Join(" | ", flags));
 				}
 
 				writer.WriteLine("	}");

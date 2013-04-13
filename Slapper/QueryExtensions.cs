@@ -14,7 +14,7 @@ namespace Slapper
 		static ConcurrentDictionary<string, object> ObjectMapCache = new ConcurrentDictionary<string, object>();
 		static ConcurrentDictionary<string, object> ValueMapCache = new ConcurrentDictionary<string, object>();
 
-		static Func<IDataRecord, T> GetOrCreateMap<T>(string sql, IDataReader reader)
+		static Func<IDataRecord, T> FindOrCreateMap<T>(string sql, IDataReader reader)
 		{
 			var t = typeof(T);
 			var key = t.FullName + ":" + sql;
@@ -28,7 +28,7 @@ namespace Slapper
 		{
 			using (var reader = conn.ExecuteReader(sql, args))
 			{
-				var map = GetOrCreateMap<T>(sql, reader);
+				var map = FindOrCreateMap<T>(sql, reader);
 				while (reader.Read())
 					yield return map(reader);
 			}
@@ -40,8 +40,8 @@ namespace Slapper
 		{
 			using (var reader = conn.ExecuteReader(sql, args, CommandBehavior.SingleResult | CommandBehavior.KeyInfo))
 			{
-				var map1 = GetOrCreateMap<T1>(sql, reader);
-				var map2 = GetOrCreateMap<T2>(sql, reader);
+				var map1 = FindOrCreateMap<T1>(sql, reader);
+				var map2 = FindOrCreateMap<T2>(sql, reader);
 				while (reader.Read())
 					yield return Tuple.Create(map1(reader), map2(reader));
 			}
@@ -54,9 +54,9 @@ namespace Slapper
 		{
 			using (var reader = conn.ExecuteReader(sql, args, CommandBehavior.SingleResult | CommandBehavior.KeyInfo))
 			{
-				var map1 = GetOrCreateMap<T1>(sql, reader);
-				var map2 = GetOrCreateMap<T2>(sql, reader);
-				var map3 = GetOrCreateMap<T3>(sql, reader);
+				var map1 = FindOrCreateMap<T1>(sql, reader);
+				var map2 = FindOrCreateMap<T2>(sql, reader);
+				var map3 = FindOrCreateMap<T3>(sql, reader);
 				while (reader.Read())
 					yield return Tuple.Create(map1(reader), map2(reader), map3(reader));
 			}
