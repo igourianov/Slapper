@@ -14,7 +14,7 @@ namespace Slapper.Reflection
 	{
 		static MethodInfo[] Getters;
 		static MethodInfo IsDBNull;
-		static BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+		static BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
 
 		static DataReaderMapper()
 		{

@@ -50,6 +50,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="DB\EntitySaveTests.cs" />
+    <Compile Include="DB\TestBase.cs" />
     <Compile Include="Utils\EntityMapperTests.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="DB\QueryTests.cs" />

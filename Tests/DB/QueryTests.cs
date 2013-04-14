@@ -9,15 +9,8 @@ using Slapper.Tests.Model;
 namespace Slapper.Tests.DB
 {
 	[TestClass]
-	public class QueryTests
+	public class QueryTests : TestBase
 	{
-		private SqlConnection OpenConnection()
-		{
-			var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["Test"].ConnectionString);
-			conn.Open();
-			return conn;
-		}
-
 		[TestMethod]
 		public void QueryObjects()
 		{
@@ -29,6 +22,26 @@ namespace Slapper.Tests.DB
 				Assert.IsFalse(list.Any(x => String.IsNullOrEmpty(x.Name)));
 				Assert.IsFalse(list.Any(x => x.CompanyID == null));
 			}
+		}
+
+		[TestMethod]
+		public void QueryInherited()
+		{
+			using (var conn = OpenConnection())
+			{
+				var e = conn.Query<EmployeeEx>(@"
+select e.*, c.Name as CompanyName
+from Employee e
+inner join Company c on(c.ID=e.CompanyID)
+").First();
+				Assert.IsNotNull(e.Name);
+				Assert.IsNotNull(e.CompanyName);
+			}
+		}
+
+		private class EmployeeEx : Employee
+		{
+			public string CompanyName;
 		}
 
 		[TestMethod]

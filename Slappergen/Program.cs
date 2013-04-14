@@ -59,9 +59,9 @@ namespace {0}
 
 					writer.WriteLine(@"		#region {1}
 		[SlapperField(""{2}"", {3})]
-		private {0} _{1}_Value;
+		protected {0} _{1}_Value;
 		[SlapperFieldModifier(""{2}"")]
-		private bool _{1}_Modified;
+		protected bool _{1}_Modified;
 		[SlapperIgnore]
 		public virtual {0} {1}
 		{{

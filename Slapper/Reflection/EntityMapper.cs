@@ -55,7 +55,7 @@ namespace Slapper.Reflection
 			});
 
 			if (member == null)
-				return null;
+				return (T o, int? val) => { };
 
 			var obj = Expression.Parameter(typeof(T), "obj");
 			var value = Expression.Parameter(typeof(int?), "value");

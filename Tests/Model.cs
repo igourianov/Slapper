@@ -10,9 +10,9 @@ namespace Slapper.Tests.Model
 	{
 		#region ID
 		[SlapperField("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
-		private Int32? _ID_Value;
+		protected Int32? _ID_Value;
 		[SlapperFieldModifier("ID")]
-		private bool _ID_Modified;
+		protected bool _ID_Modified;
 		[SlapperIgnore]
 		public virtual Int32? ID
 		{
@@ -31,9 +31,9 @@ namespace Slapper.Tests.Model
 
 		#region Name
 		[SlapperField("Name", FieldFlags.None)]
-		private String _Name_Value;
+		protected String _Name_Value;
 		[SlapperFieldModifier("Name")]
-		private bool _Name_Modified;
+		protected bool _Name_Modified;
 		[SlapperIgnore]
 		public virtual String Name
 		{
@@ -52,9 +52,9 @@ namespace Slapper.Tests.Model
 
 		#region CompanyID
 		[SlapperField("CompanyID", FieldFlags.None)]
-		private Int32? _CompanyID_Value;
+		protected Int32? _CompanyID_Value;
 		[SlapperFieldModifier("CompanyID")]
-		private bool _CompanyID_Modified;
+		protected bool _CompanyID_Modified;
 		[SlapperIgnore]
 		public virtual Int32? CompanyID
 		{
@@ -77,9 +77,9 @@ namespace Slapper.Tests.Model
 	{
 		#region ID
 		[SlapperField("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
-		private Int32? _ID_Value;
+		protected Int32? _ID_Value;
 		[SlapperFieldModifier("ID")]
-		private bool _ID_Modified;
+		protected bool _ID_Modified;
 		[SlapperIgnore]
 		public virtual Int32? ID
 		{
@@ -98,9 +98,9 @@ namespace Slapper.Tests.Model
 
 		#region Name
 		[SlapperField("Name", FieldFlags.None)]
-		private String _Name_Value;
+		protected String _Name_Value;
 		[SlapperFieldModifier("Name")]
-		private bool _Name_Modified;
+		protected bool _Name_Modified;
 		[SlapperIgnore]
 		public virtual String Name
 		{
@@ -119,9 +119,9 @@ namespace Slapper.Tests.Model
 
 		#region IndexName
 		[SlapperField("IndexName", FieldFlags.None | FieldFlags.ReadOnly)]
-		private String _IndexName_Value;
+		protected String _IndexName_Value;
 		[SlapperFieldModifier("IndexName")]
-		private bool _IndexName_Modified;
+		protected bool _IndexName_Modified;
 		[SlapperIgnore]
 		public virtual String IndexName
 		{
