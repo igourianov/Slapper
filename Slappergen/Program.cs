@@ -39,7 +39,7 @@ namespace {0}
 			foreach (var table in conn.Query<string>(@"select name from sysobjects where xtype='U'").ToList())
 			{
 				var className = MakeCSharpName(table);
-				writer.WriteLine(@"	[Entity(""{0}"")]
+				writer.WriteLine(@"	[SlapperEntity(""{0}"")]
 	public partial class {1}
 	{{", table, className);
 
@@ -58,11 +58,11 @@ namespace {0}
 						.ToArray();
 
 					writer.WriteLine(@"		#region {1}
-		[Field(""{2}"", {3})]
+		[SlapperField(""{2}"", {3})]
 		private {0} _{1}_Value;
-		[Modified(""{2}"")]
+		[SlapperFieldModifier(""{2}"")]
 		private bool _{1}_Modified;
-		[Ignore]
+		[SlapperIgnore]
 		public virtual {0} {1}
 		{{
 			get

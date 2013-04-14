@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Slapper.Attributes
 {
-	public class Modified : SlapperAttribute
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
+	public class SlapperFieldModifierAttribute : SlapperAttribute
 	{
 		public string Name;
 
-		public Modified(string name)
+		public SlapperFieldModifierAttribute(string name)
 		{
 			Name = name;
 		}

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Slapper.Attributes
 {
 	// marker type
-	public class SlapperAttribute : Attribute
+	public abstract class SlapperAttribute : Attribute
 	{
 	}
 }

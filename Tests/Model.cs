@@ -5,15 +5,15 @@ using Slapper.Attributes;
 
 namespace Slapper.Tests.Model
 {
-	[Entity("Employee")]
+	[SlapperEntity("Employee")]
 	public partial class Employee
 	{
 		#region ID
-		[Field("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
+		[SlapperField("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
 		private Int32? _ID_Value;
-		[Modified("ID")]
+		[SlapperFieldModifier("ID")]
 		private bool _ID_Modified;
-		[Ignore]
+		[SlapperIgnore]
 		public virtual Int32? ID
 		{
 			get
@@ -30,11 +30,11 @@ namespace Slapper.Tests.Model
 		#endregion
 
 		#region Name
-		[Field("Name", FieldFlags.None)]
+		[SlapperField("Name", FieldFlags.None)]
 		private String _Name_Value;
-		[Modified("Name")]
+		[SlapperFieldModifier("Name")]
 		private bool _Name_Modified;
-		[Ignore]
+		[SlapperIgnore]
 		public virtual String Name
 		{
 			get
@@ -51,11 +51,11 @@ namespace Slapper.Tests.Model
 		#endregion
 
 		#region CompanyID
-		[Field("CompanyID", FieldFlags.None)]
+		[SlapperField("CompanyID", FieldFlags.None)]
 		private Int32? _CompanyID_Value;
-		[Modified("CompanyID")]
+		[SlapperFieldModifier("CompanyID")]
 		private bool _CompanyID_Modified;
-		[Ignore]
+		[SlapperIgnore]
 		public virtual Int32? CompanyID
 		{
 			get
@@ -72,15 +72,15 @@ namespace Slapper.Tests.Model
 		#endregion
 
 	}
-	[Entity("Company")]
+	[SlapperEntity("Company")]
 	public partial class Company
 	{
 		#region ID
-		[Field("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
+		[SlapperField("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
 		private Int32? _ID_Value;
-		[Modified("ID")]
+		[SlapperFieldModifier("ID")]
 		private bool _ID_Modified;
-		[Ignore]
+		[SlapperIgnore]
 		public virtual Int32? ID
 		{
 			get
@@ -97,11 +97,11 @@ namespace Slapper.Tests.Model
 		#endregion
 
 		#region Name
-		[Field("Name", FieldFlags.None)]
+		[SlapperField("Name", FieldFlags.None)]
 		private String _Name_Value;
-		[Modified("Name")]
+		[SlapperFieldModifier("Name")]
 		private bool _Name_Modified;
-		[Ignore]
+		[SlapperIgnore]
 		public virtual String Name
 		{
 			get
@@ -118,11 +118,11 @@ namespace Slapper.Tests.Model
 		#endregion
 
 		#region IndexName
-		[Field("IndexName", FieldFlags.None | FieldFlags.ReadOnly)]
+		[SlapperField("IndexName", FieldFlags.None | FieldFlags.ReadOnly)]
 		private String _IndexName_Value;
-		[Modified("IndexName")]
+		[SlapperFieldModifier("IndexName")]
 		private bool _IndexName_Modified;
-		[Ignore]
+		[SlapperIgnore]
 		public virtual String IndexName
 		{
 			get

@@ -6,23 +6,24 @@ using System.Threading.Tasks;
 
 namespace Slapper.Attributes
 {
-	public class Field : SlapperAttribute
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
+	public class SlapperFieldAttribute : SlapperAttribute
 	{
 		public string Name;
 		public FieldFlags Flags;
 
-		public Field(string name, FieldFlags flags)
+		public SlapperFieldAttribute(string name, FieldFlags flags)
 		{
 			Name = name;
 			Flags = flags;
 		}
 
-		public Field(string name)
-			 : this(name, FieldFlags.None)
+		public SlapperFieldAttribute(string name)
+			: this(name, FieldFlags.None)
 		{
 		}
 
-		public Field()
+		public SlapperFieldAttribute()
 			: this(null)
 		{
 		}

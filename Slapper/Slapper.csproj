@@ -39,10 +39,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\Entity.cs" />
-    <Compile Include="Attributes\Field.cs" />
-    <Compile Include="Attributes\Ignore.cs" />
-    <Compile Include="Attributes\Modified.cs" />
+    <Compile Include="Attributes\SlapperEntityAttribute.cs" />
+    <Compile Include="Attributes\SlapperFieldAttribute.cs" />
+    <Compile Include="Attributes\SlapperIgnoreAttribute.cs" />
+    <Compile Include="Attributes\SlapperFieldModifierAttribute.cs" />
     <Compile Include="Attributes\SlapperAttribute.cs" />
     <Compile Include="QueryExtensions.cs" />
     <Compile Include="Reflection\DataReaderMapper.cs" />

@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace Slapper.Attributes
 {
 	// marker for members that shold not be mapped
-	public class Ignore : SlapperAttribute
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
+	public class SlapperIgnoreAttribute : SlapperAttribute
 	{
 	}
 }

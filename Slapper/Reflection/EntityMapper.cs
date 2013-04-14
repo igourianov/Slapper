@@ -39,7 +39,7 @@ namespace Slapper.Reflection
 
 		public static Map<T> CreateMap<T>()
 		{
-			var attr = typeof(T).GetCustomAttribute<Entity>();
+			var attr = typeof(T).GetCustomAttribute<SlapperEntityAttribute>();
 			return new Map<T> {
 				Table = attr != null && attr.Table != null ? attr.Table : typeof(T).Name,
 				FieldReader = CreateFieldReader<T>(),
@@ -50,7 +50,7 @@ namespace Slapper.Reflection
 		public static Action<T, int?> CreateIdentitySetter<T>()
 		{
 			var member = GetBindableMembers(typeof(T)).FirstOrDefault(x => {
-				var attr = x.GetCustomAttribute<Field>();
+				var attr = x.GetCustomAttribute<SlapperFieldAttribute>();
 				return attr != null && (attr.Flags & FieldFlags.Identity) > 0;
 			});
 
@@ -69,13 +69,13 @@ namespace Slapper.Reflection
 			var obj = Expression.Parameter(typeof(T), "obj");
 			var values = new List<Expression>();
 			var members = GetBindableMembers(typeof(T)).ToArray();
-			var modifiers = members.Select(x => new { Member = x, Attr = x.GetCustomAttribute<Modified>() })
+			var modifiers = members.Select(x => new { Member = x, Attr = x.GetCustomAttribute<SlapperFieldModifierAttribute>() })
 				.Where(x => x.Attr != null)
 				.ToDictionary(x => x.Attr.Name, x => x.Member);
 
 			foreach (var member in members)
 			{
-				var attr = member.GetCustomAttribute<Field>();
+				var attr = member.GetCustomAttribute<SlapperFieldAttribute>();
 				if (attr != null)
 				{
 					var name = attr.Name ?? member.Name;
@@ -101,7 +101,7 @@ namespace Slapper.Reflection
 				.Where(x => x.GetIndexParameters().Length == 0 && x.CanRead);
 
 			return fields.Cast<MemberInfo>().Concat(props)
-				.Where(x => x.GetCustomAttribute<Ignore>() == null);
+				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null);
 		}
 	}
 

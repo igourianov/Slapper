@@ -38,7 +38,7 @@ namespace Slapper.Reflection
 		public static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
 		{
 			var t = typeof(T);
-			var attr = t.GetCustomAttributes<Entity>().FirstOrDefault();
+			var attr = t.GetCustomAttributes<SlapperEntityAttribute>().FirstOrDefault();
 			var tableName = (attr != null && attr.Table != null ? attr.Table : t.Name).ToLower();
 			var schema = GetSchema(reader).OrderBy(x => x.Table != tableName).ToList();
 			var members = GetMembers(t).ToList();
@@ -113,9 +113,9 @@ namespace Slapper.Reflection
 		{
 			foreach (var p in t.GetProperties(MemberFlags)
 				.Where(x => x.CanWrite && x.GetIndexParameters().Length == 0)
-				.Where(x => x.GetCustomAttribute<Ignore>() == null))
+				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null))
 			{
-				var attr = p.GetCustomAttribute<Field>();
+				var attr = p.GetCustomAttribute<SlapperFieldAttribute>();
 				yield return new ObjectMember {
 					Name = (attr != null && attr.Name != null ? attr.Name : p.Name).ToLower(),
 					Type = p.PropertyType,
@@ -125,9 +125,9 @@ namespace Slapper.Reflection
 
 			foreach (var f in t.GetFields(MemberFlags)
 				.Where(x => !x.IsInitOnly)
-				.Where(x => x.GetCustomAttribute<Ignore>() == null))
+				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null))
 			{
-				var attr = f.GetCustomAttribute<Field>();
+				var attr = f.GetCustomAttribute<SlapperFieldAttribute>();
 				yield return new ObjectMember {
 					Name = (attr != null && attr.Name != null ? attr.Name : f.Name).ToLower(),
 					Type = f.FieldType,
