@@ -69,6 +69,8 @@ namespace Slapper.Reflection
 		static Expression RecordValue(Expression record, RecordColumn col, Type returnType)
 		{
 			Expression value = Expression.Call(record, FindGetter(col.Type), Expression.Constant(col.Index));
+			if (value.Type == typeof(Object))
+				value = Expression.Unbox(value, col.Type);
 			if (value.Type != returnType)
 				value = Expression.Convert(value, returnType);
 			if (!returnType.IsValueType || returnType.IsNullable())
@@ -81,7 +83,7 @@ namespace Slapper.Reflection
 			var getterName = "Get" + (!type.IsNullable() ? type.Name : type.GetGenericArguments()[0].Name);
 			if (getterName == "GetSingle")
 				getterName = "GetFloat";
-			return Getters.FirstOrDefault(x => x.Name == getterName) ?? Getters.FirstOrDefault(x => x.Name == "GetValue");
+			return Getters.FirstOrDefault(x => x.Name == getterName) ?? Getters.First(x => x.Name == "GetValue");
 		}
 
 		static IEnumerable<RecordColumn> GetSchema(IDataReader reader)

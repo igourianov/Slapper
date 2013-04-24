@@ -23,6 +23,7 @@ create table Employee
 	ID int primary key identity(1,1),
 	Name varchar(200) not null,
 	CompanyID int not null,
+	ShiftStart time(0) null,
 );
 
 if exists(select top 1 null from sys.objects where type='U' and name='Company')
@@ -40,12 +41,12 @@ insert into Company (Name) values ('Planet Express');
 insert into Company (Name) values ('DOOP');
 insert into Company (Name) values ('Mom Corp');
 
-insert into Employee (Name, CompanyID) values ('Philip Fry', 1);
-insert into Employee (Name, CompanyID) values ('Bender', 1);
-insert into Employee (Name, CompanyID) values ('Hermes Conrad', 1);
-insert into Employee (Name, CompanyID) values ('Zapp Brannigan', 2);
-insert into Employee (Name, CompanyID) values ('Kif Kroker', 2);
-insert into Employee (Name, CompanyID) values ('Mom', 3);
+insert into Employee (Name, CompanyID, ShiftStart) values ('Philip Fry', 1, '9:00');
+insert into Employee (Name, CompanyID, ShiftStart) values ('Bender', 1, '9:30');
+insert into Employee (Name, CompanyID, ShiftStart) values ('Hermes Conrad', 1, '8:00');
+insert into Employee (Name, CompanyID, ShiftStart) values ('Zapp Brannigan', 2, '12:00');
+insert into Employee (Name, CompanyID, ShiftStart) values ('Kif Kroker', 2, '6:00');
+insert into Employee (Name, CompanyID, ShiftStart) values ('Mom', 3, '10:00');
 ");
 			}
 		}

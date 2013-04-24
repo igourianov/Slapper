@@ -77,16 +77,16 @@ namespace {0}
 			}}
 		}}
 		#endregion
-", GetTypeName(col.Type), memberName, col.Name, String.Join(" | ", flags));
+", GetTypeName(col.Type, col.IsNullable), memberName, col.Name, String.Join(" | ", flags));
 				}
 
 				writer.WriteLine("	}");
 			}
 		}
 
-		static string GetTypeName(Type t)
+		static string GetTypeName(Type t, bool nullable)
 		{
-			return t.Name + (t.IsValueType ? "?" : "");
+			return t.Name + (t.IsValueType && nullable ? "?" : "");
 		}
 
 		static string MakeCSharpName(string name)
@@ -109,6 +109,7 @@ namespace {0}
 				int isKey = schema.Columns.IndexOf("IsKey");
 				int isIdentity = schema.Columns.IndexOf("IsIdentity");
 				int isReadOnly = schema.Columns.IndexOf("IsReadOnly");
+				int isNullable = schema.Columns.IndexOf("AllowDBNull");
 
 				var types = Enumerable.Range(0, reader.FieldCount).Select(x => reader.GetFieldType(x)).ToList();
 
@@ -119,6 +120,7 @@ namespace {0}
 						IsKey = isKey == -1 ? false : x.Field<bool>(isKey),
 						IsIdentity = isIdentity == -1 ? false : x.Field<bool>(isIdentity),
 						IsReadOnly = isReadOnly == -1 ? false : x.Field<bool>(isReadOnly),
+						IsNullable = isNullable == -1 ? true : x.Field<bool>(isNullable),
 					});
 			}
 		}
@@ -130,6 +132,7 @@ namespace {0}
 			public bool IsKey;
 			public bool IsReadOnly;
 			public bool IsIdentity;
+			public bool IsNullable;
 		}
 	}
 }

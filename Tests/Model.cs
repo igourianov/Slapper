@@ -10,11 +10,11 @@ namespace Slapper.Tests.Model
 	{
 		#region ID
 		[SlapperField("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
-		protected Int32? _ID_Value;
+		protected Int32 _ID_Value;
 		[SlapperFieldModifier("ID")]
 		protected bool _ID_Modified;
 		[SlapperIgnore]
-		public virtual Int32? ID
+		public virtual Int32 ID
 		{
 			get
 			{
@@ -52,11 +52,11 @@ namespace Slapper.Tests.Model
 
 		#region CompanyID
 		[SlapperField("CompanyID", FieldFlags.None)]
-		protected Int32? _CompanyID_Value;
+		protected Int32 _CompanyID_Value;
 		[SlapperFieldModifier("CompanyID")]
 		protected bool _CompanyID_Modified;
 		[SlapperIgnore]
-		public virtual Int32? CompanyID
+		public virtual Int32 CompanyID
 		{
 			get
 			{
@@ -71,17 +71,38 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 
+		#region ShiftStart
+		[SlapperField("ShiftStart", FieldFlags.None)]
+		protected TimeSpan? _ShiftStart_Value;
+		[SlapperFieldModifier("ShiftStart")]
+		protected bool _ShiftStart_Modified;
+		[SlapperIgnore]
+		public virtual TimeSpan? ShiftStart
+		{
+			get
+			{
+				return _ShiftStart_Value;
+			}
+			set
+			{
+				if (!_ShiftStart_Modified)
+					_ShiftStart_Modified = _ShiftStart_Value != value;
+				_ShiftStart_Value = value;
+			}
+		}
+		#endregion
+
 	}
 	[SlapperEntity("Company")]
 	public partial class Company
 	{
 		#region ID
 		[SlapperField("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
-		protected Int32? _ID_Value;
+		protected Int32 _ID_Value;
 		[SlapperFieldModifier("ID")]
 		protected bool _ID_Modified;
 		[SlapperIgnore]
-		public virtual Int32? ID
+		public virtual Int32 ID
 		{
 			get
 			{

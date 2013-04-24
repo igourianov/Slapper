@@ -55,5 +55,10 @@ namespace Slapper
 				return conn.ExecuteNonQuery(sql.ToString(), args);
 			}
 		}
+
+		public static void Insert<T>(this IDbConnection conn, T obj)
+		{
+
+		}
 	}
 }
