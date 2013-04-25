@@ -14,7 +14,7 @@ namespace Slapper.Reflection
 	{
 		static ConcurrentDictionary<Type, Reader> ObjectReaderCache = new ConcurrentDictionary<Type, Reader>();
 		static ConstructorInfo KeyValueCtor = typeof(KeyValue).GetConstructor(new Type[] { typeof(string), typeof(object) });
-		static BindingFlags InstanceFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy;
+		static BindingFlags InstanceFlags = BindingFlags.Instance | BindingFlags.Public;
 
 		public static IEnumerable<KeyValue> Read(object obj)
 		{
@@ -62,10 +62,8 @@ namespace Slapper.Reflection
 			var block = Expression.Block(
 				typeof(KeyValue[]),
 				new ParameterExpression[] { obj },
-				new Expression[] {
-					Expression.Assign(obj, Expression.Convert(param, t)),
-					Expression.NewArrayInit(typeof(KeyValue), members)
-				}
+				Expression.Assign(obj, Expression.Convert(param, t)),
+				Expression.NewArrayInit(typeof(KeyValue), members)
 			);
 			return Expression.Lambda<Reader>(block, param).Compile();
 		}
