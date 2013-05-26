@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Data;
 using Slapper.Reflection;
 
@@ -30,33 +33,43 @@ namespace Slapper
 		public static IDbCommand CreateCommand(this IDbConnection conn, string sql, object args = null, bool checkSql = true)
 		{
 			var cmd = conn.CreateCommand();
-			cmd.CommandText = sql;
 			cmd.Connection = conn; // just in case
 
 			if (args != null)
 			{
-				foreach (var m in ParameterReader.Read(args))
+				foreach (var m in ParameterReader.Read(args).Where(x => !checkSql || sql.Contains("@" + x.Key)))
 				{
-					var p = m.Value as IDbDataParameter ?? cmd.CreateParameter(m.Key, m.Value);
-					if (!checkSql || sql.Contains(p.ParameterName))
-						cmd.Parameters.Add(p);
+					if (m.Value is IEnumerable && !m.Value.GetType().IsScalar())
+					{
+						var values = ((IEnumerable)m.Value).Cast<Object>()
+							.Select((x,i) => cmd.CreateParameter(String.Format("@{0}_{1}", m.Key, i), x))
+							.ToList();
+
+						sql = sql.Replace("@" + m.Key, String.Join(",", values.Select(x => x.ParameterName)));
+
+						foreach (var val in values)
+							cmd.Parameters.Add(val);
+					}
+					else
+						cmd.Parameters.Add(cmd.CreateParameter(m.Key, m.Value));
 				}
 			}
 
+			cmd.CommandText = sql;
 			return cmd;
 		}
 
-		public static IDbDataParameter CreateParameter(this IDbCommand cmd, string name, object value, DbType? type = null)
+		static IDbDataParameter CreateParameter(this IDbCommand cmd, string name, object value, DbType? type = null)
 		{
 			var p = cmd.CreateParameter();
-			p.ParameterName = name.StartsWith("@") ? name : "@" + name;
+			p.ParameterName = name; //name.StartsWith("@") ? name : "@" + name;
 			p.Value = value ?? DBNull.Value;
 			if (type != null)
 				p.DbType = type.Value;
 			return p;
 		}
 
-		public static IDbDataParameter CreateParameter(this IDbConnection conn, string name, object value, DbType? type = null)
+		static IDbDataParameter CreateParameter(this IDbConnection conn, string name, object value, DbType? type = null)
 		{
 			using (var cmd = conn.CreateCommand())
 				return cmd.CreateParameter(name, value, type);

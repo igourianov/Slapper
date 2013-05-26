@@ -34,7 +34,7 @@ namespace Slapper.Reflection
 		{
 			public string Table;
 			public Func<T, IEnumerable<EntityMapper.Column>> FieldReader;
-			public Action<T, int?> IdentitySetter;
+			public Action<T, int> IdentitySetter;
 		}
 
 		public static Map<T> CreateMap<T>()
@@ -47,7 +47,7 @@ namespace Slapper.Reflection
 			};
 		}
 
-		public static Action<T, int?> CreateIdentitySetter<T>()
+		public static Action<T, int> CreateIdentitySetter<T>()
 		{
 			var member = GetBindableMembers(typeof(T)).FirstOrDefault(x => {
 				var attr = x.GetCustomAttribute<SlapperFieldAttribute>();
@@ -55,12 +55,12 @@ namespace Slapper.Reflection
 			});
 
 			if (member == null)
-				return (T o, int? val) => { };
+				return (T o, int val) => { };
 
 			var obj = Expression.Parameter(typeof(T), "obj");
-			var value = Expression.Parameter(typeof(int?), "value");
+			var value = Expression.Parameter(typeof(int), "value");
 
-			return Expression.Lambda<Action<T, int?>>(Expression.Assign(Expression.MakeMemberAccess(obj, member), value), obj, value).Compile();
+			return Expression.Lambda<Action<T, int>>(Expression.Assign(Expression.MakeMemberAccess(obj, member), value), obj, value).Compile();
 		}
 
 		public static Func<T, IEnumerable<Column>> CreateFieldReader<T>()

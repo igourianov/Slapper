@@ -19,7 +19,7 @@ namespace Slapper
 			var t = typeof(T);
 			var key = t.FullName + ":" + sql;
 			
-			if (t.IsValueType || t == typeof(String) || t == typeof(byte[]))
+			if (t.IsScalar())
 				return (Func<IDataRecord, T>)ValueMapCache.GetOrAdd(key, (s) => DataReaderMapper.CreateValueMapper<T>(reader));
 			return (Func<IDataRecord, T>)ObjectMapCache.GetOrAdd(key, (s) => DataReaderMapper.CreateObjectMapper<T>(reader));
 		}

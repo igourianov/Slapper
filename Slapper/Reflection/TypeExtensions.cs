@@ -24,5 +24,9 @@ namespace Slapper.Reflection
 			return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && type.GetGenericArguments()[0] == t;
 		}
 
+		public static bool IsScalar(this Type type)
+		{
+			return type.IsValueType || type == typeof(String) || type == typeof(byte[]);
+		}
 	}
 }

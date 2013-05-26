@@ -38,17 +38,14 @@ namespace {0}
 		{
 			foreach (var table in conn.Query<string>(@"select name from sysobjects where xtype='U'").ToList())
 			{
-				var className = MakeCSharpName(table);
+				var className = GetMemberName(table);
 				writer.WriteLine(@"	[SlapperEntity(""{0}"")]
 	public partial class {1}
 	{{", table, className);
 
 				foreach (var col in GetSchema(conn, table))
 				{
-					var memberName = MakeCSharpName(col.Name);
-
 					var flags = new string[] {
-						"None",
 						col.IsKey ? "Key" : null,
 						col.IsReadOnly ? "ReadOnly" : null,
 						col.IsIdentity ? "Identity" : null,
@@ -57,8 +54,8 @@ namespace {0}
 						.Select(x => "FieldFlags." + x)
 						.ToArray();
 
-					writer.WriteLine(@"		#region {1}
-		[SlapperField(""{2}"", {3})]
+					writer.Write(@"		#region {1}
+		[SlapperField(""{2}""{3})]
 		protected {0} _{1}_Value;
 		[SlapperFieldModifier(""{2}"")]
 		protected bool _{1}_Modified;
@@ -77,7 +74,7 @@ namespace {0}
 			}}
 		}}
 		#endregion
-", GetTypeName(col.Type, col.IsNullable), memberName, col.Name, String.Join(" | ", flags));
+", GetTypeName(col.Type, col.IsNullable), GetMemberName(col.Name), col.Name, (flags.Length > 0 ? ", " + String.Join(" | ", flags) : null));
 				}
 
 				writer.WriteLine("	}");
@@ -89,7 +86,7 @@ namespace {0}
 			return t.Name + (t.IsValueType && nullable ? "?" : "");
 		}
 
-		static string MakeCSharpName(string name)
+		static string GetMemberName(string name)
 		{
 			name = Regex.Replace(name, @"[^0-9a-zA-Z]+", "_", RegexOptions.Compiled).Trim('_');
 			if (Char.IsDigit(name[0]))

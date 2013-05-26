@@ -91,6 +91,17 @@ inner join Company c on(c.ID=e.CompanyID)
 			}
 		}
 
+		[TestMethod]
+		public void QueryWithParamList()
+		{
+			using (var conn = OpenConnection())
+			{
+				var list = conn.Query<Employee>("select * from Employee where ID in(@ids)", new { ids = new int[] { 2, 6 } }).ToList();
+				Assert.AreEqual(2, list.Count);
+				Assert.IsTrue(list.Count(x => x.ID == 2 || x.ID == 6) == 2);
+			}
+		}
+
 		public class BadEmployee
 		{
 			public DateTime ID;

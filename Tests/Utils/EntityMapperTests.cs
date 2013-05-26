@@ -25,7 +25,6 @@ namespace Slapper.Tests.Utils
 
 			var id = fields.FirstOrDefault(x => x.Name == "ID");
 			Assert.IsNotNull(id);
-			Assert.IsNull(id.Value);
 			Assert.IsFalse(id.Modified);
 		}
 

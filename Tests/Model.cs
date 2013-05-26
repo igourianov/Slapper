@@ -9,7 +9,7 @@ namespace Slapper.Tests.Model
 	public partial class Employee
 	{
 		#region ID
-		[SlapperField("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
+		[SlapperField("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
 		protected Int32 _ID_Value;
 		[SlapperFieldModifier("ID")]
 		protected bool _ID_Modified;
@@ -28,9 +28,8 @@ namespace Slapper.Tests.Model
 			}
 		}
 		#endregion
-
 		#region Name
-		[SlapperField("Name", FieldFlags.None)]
+		[SlapperField("Name")]
 		protected String _Name_Value;
 		[SlapperFieldModifier("Name")]
 		protected bool _Name_Modified;
@@ -49,9 +48,8 @@ namespace Slapper.Tests.Model
 			}
 		}
 		#endregion
-
 		#region CompanyID
-		[SlapperField("CompanyID", FieldFlags.None)]
+		[SlapperField("CompanyID")]
 		protected Int32 _CompanyID_Value;
 		[SlapperFieldModifier("CompanyID")]
 		protected bool _CompanyID_Modified;
@@ -70,9 +68,8 @@ namespace Slapper.Tests.Model
 			}
 		}
 		#endregion
-
 		#region ShiftStart
-		[SlapperField("ShiftStart", FieldFlags.None)]
+		[SlapperField("ShiftStart")]
 		protected TimeSpan? _ShiftStart_Value;
 		[SlapperFieldModifier("ShiftStart")]
 		protected bool _ShiftStart_Modified;
@@ -91,13 +88,12 @@ namespace Slapper.Tests.Model
 			}
 		}
 		#endregion
-
 	}
 	[SlapperEntity("Company")]
 	public partial class Company
 	{
 		#region ID
-		[SlapperField("ID", FieldFlags.None | FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
+		[SlapperField("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
 		protected Int32 _ID_Value;
 		[SlapperFieldModifier("ID")]
 		protected bool _ID_Modified;
@@ -116,9 +112,8 @@ namespace Slapper.Tests.Model
 			}
 		}
 		#endregion
-
 		#region Name
-		[SlapperField("Name", FieldFlags.None)]
+		[SlapperField("Name")]
 		protected String _Name_Value;
 		[SlapperFieldModifier("Name")]
 		protected bool _Name_Modified;
@@ -137,9 +132,8 @@ namespace Slapper.Tests.Model
 			}
 		}
 		#endregion
-
 		#region IndexName
-		[SlapperField("IndexName", FieldFlags.None | FieldFlags.ReadOnly)]
+		[SlapperField("IndexName", FieldFlags.ReadOnly)]
 		protected String _IndexName_Value;
 		[SlapperFieldModifier("IndexName")]
 		protected bool _IndexName_Modified;
@@ -158,6 +152,5 @@ namespace Slapper.Tests.Model
 			}
 		}
 		#endregion
-
 	}
 }
