@@ -30,19 +30,19 @@ namespace Slapper
 				return cmd.ExecuteReader(behavior);
 		}
 
-		public static IDbCommand CreateCommand(this IDbConnection conn, string sql, object args = null, bool checkSql = true)
+		static IDbCommand CreateCommand(this IDbConnection conn, string sql, object args = null)
 		{
 			var cmd = conn.CreateCommand();
 			cmd.Connection = conn; // just in case
 
 			if (args != null)
 			{
-				foreach (var m in ParameterReader.Read(args).Where(x => !checkSql || sql.Contains("@" + x.Key)))
+				foreach (var m in ParameterReader.Read(args).Where(x => sql.Contains("@" + x.Key)))
 				{
 					if (m.Value is IEnumerable && !m.Value.GetType().IsScalar())
 					{
 						var values = ((IEnumerable)m.Value).Cast<Object>()
-							.Select((x,i) => cmd.CreateParameter(String.Format("@{0}_{1}", m.Key, i), x))
+							.Select((x, i) => cmd.CreateParameter(String.Format("@{0}_{1}", m.Key, i), x))
 							.ToList();
 
 						sql = sql.Replace("@" + m.Key, String.Join(",", values.Select(x => x.ParameterName)));
@@ -62,17 +62,11 @@ namespace Slapper
 		static IDbDataParameter CreateParameter(this IDbCommand cmd, string name, object value, DbType? type = null)
 		{
 			var p = cmd.CreateParameter();
-			p.ParameterName = name; //name.StartsWith("@") ? name : "@" + name;
+			p.ParameterName = name;
 			p.Value = value ?? DBNull.Value;
 			if (type != null)
 				p.DbType = type.Value;
 			return p;
-		}
-
-		static IDbDataParameter CreateParameter(this IDbConnection conn, string name, object value, DbType? type = null)
-		{
-			using (var cmd = conn.CreateCommand())
-				return cmd.CreateParameter(name, value, type);
 		}
 	}
 }

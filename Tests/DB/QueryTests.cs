@@ -20,7 +20,7 @@ namespace Slapper.Tests.DB
 				Assert.AreNotEqual(0, list.Count);
 				Assert.IsFalse(list.Any(x => x.ID == 0));
 				Assert.IsFalse(list.Any(x => String.IsNullOrEmpty(x.Name)));
-				Assert.IsFalse(list.Any(x => x.CompanyID == null));
+				Assert.IsFalse(list.Any(x => x.CompanyID == 0));
 			}
 		}
 
