@@ -37,21 +37,21 @@ namespace Slapper
 
 			if (args != null)
 			{
-				foreach (var m in ParameterReader.Read(args).Where(x => sql.Contains("@" + x.Key)))
+				foreach (var m in ParameterMapper.Read(args).Where(x => sql.Contains("@" + x.Name)))
 				{
 					if (m.Value is IEnumerable && !m.Value.GetType().IsScalar())
 					{
 						var values = ((IEnumerable)m.Value).Cast<Object>()
-							.Select((x, i) => cmd.CreateParameter(String.Format("@{0}_{1}", m.Key, i), x))
+							.Select((x, i) => cmd.CreateParameter(String.Format("@{0}_{1}", m.Name, i), x))
 							.ToList();
 
-						sql = sql.Replace("@" + m.Key, String.Join(",", values.Select(x => x.ParameterName)));
+						sql = sql.Replace("@" + m.Name, String.Join(",", values.Select(x => x.ParameterName)));
 
 						foreach (var val in values)
 							cmd.Parameters.Add(val);
 					}
 					else
-						cmd.Parameters.Add(cmd.CreateParameter(m.Key, m.Value));
+						cmd.Parameters.Add(cmd.CreateParameter(m.Name, m.Value));
 				}
 			}
 

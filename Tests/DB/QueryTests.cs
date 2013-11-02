@@ -73,7 +73,7 @@ inner join Company c on(c.ID=e.CompanyID)
 				var list = conn.Query<BadEmployee>("select * from Employee").ToList();
 			}
 		}
-
+		/*
 		[TestMethod]
 		public void QueryObjectTuple()
 		{
@@ -90,7 +90,7 @@ inner join Company c on(c.ID=e.CompanyID)
 				Assert.IsFalse(list.All(x => x.Item1.Name == x.Item2.Name));
 			}
 		}
-
+		*/
 		[TestMethod]
 		public void QueryWithParamList()
 		{
