@@ -28,5 +28,10 @@ namespace Slapper.Reflection
 		{
 			return type.IsValueType || type == typeof(String) || type == typeof(byte[]);
 		}
+
+		public static bool IsTuple(this Type type)
+		{
+			return type.FullName.StartsWith("System.Tuple`");
+		}
 	}
 }

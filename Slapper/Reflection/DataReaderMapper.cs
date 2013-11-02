@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -12,14 +13,17 @@ namespace Slapper.Reflection
 {
 	public static class DataReaderMapper
 	{
-		static MethodInfo[] Getters;
+		static MethodInfo[] GetterCache;
 		static MethodInfo IsDBNull;
 		static BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
+		static ConcurrentDictionary<string, object> ObjectMapCache = new ConcurrentDictionary<string, object>();
+		static ConcurrentDictionary<string, object> ValueMapCache = new ConcurrentDictionary<string, object>();
+		static DataRow[] EmptyDataRows = new DataRow[0];
 
 		static DataReaderMapper()
 		{
 			IsDBNull = typeof(IDataRecord).GetMethod("IsDBNull", new Type[] { typeof(int) });
-			Getters = typeof(IDataRecord).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+			GetterCache = typeof(IDataRecord).GetMethods(BindingFlags.Public | BindingFlags.Instance)
 				.Where(x => x.Name.StartsWith("Get"))
 				.Where(x => {
 					var prms = x.GetParameters();
@@ -29,10 +33,20 @@ namespace Slapper.Reflection
 				.ToArray();
 		}
 
+		public static Func<IDataRecord, T> CreateMapper<T>(string sql, IDataReader reader)
+		{
+			var t = typeof(T);
+			var key = t.FullName + ":" + sql;
+
+			if (t.IsScalar())
+				return (Func<IDataRecord, T>)ValueMapCache.GetOrAdd(key, (s) => CreateValueMapper<T>(reader));
+			return (Func<IDataRecord, T>)ObjectMapCache.GetOrAdd(key, (s) => CreateObjectMapper<T>(reader));
+		}
+
 		public static Func<IDataRecord, T> CreateValueMapper<T>(IDataReader reader)
 		{
 			var record = Expression.Parameter(typeof(IDataRecord), "record");
-			return Expression.Lambda<Func<IDataRecord, T>>(RecordValue(record, GetSchema(reader).First(), typeof(T)), record).Compile();
+			return Expression.Lambda<Func<IDataRecord, T>>(RecordValue(record, GetColumns(reader, false).First(), typeof(T)), record).Compile();
 		}
 
 		public static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
@@ -40,7 +54,7 @@ namespace Slapper.Reflection
 			var t = typeof(T);
 			var attr = t.GetCustomAttributes<SlapperEntityAttribute>().FirstOrDefault();
 			var tableName = (attr != null && attr.Table != null ? attr.Table : t.Name).ToLower();
-			var schema = GetSchema(reader).OrderBy(x => x.Table != tableName).ToList();
+			var schema = GetColumns(reader, false).OrderBy(x => x.Table != tableName).ToList();
 			var members = GetMembers(t).ToList();
 
 			var record = Expression.Parameter(typeof(IDataRecord), "record");
@@ -68,27 +82,24 @@ namespace Slapper.Reflection
 
 		static Expression RecordValue(Expression record, RecordColumn col, Type returnType)
 		{
-			Expression value = Expression.Call(record, FindGetter(col.Type), Expression.Constant(col.Index));
+			var typeName = !col.Type.IsNullable() ? col.Type.Name : col.Type.GetGenericArguments()[0].Name;
+			var getterName = typeName == "Single" ? "GetFloat" : "Get" + typeName;
+			var getter = GetterCache.FirstOrDefault(x => x.Name == getterName) ?? GetterCache.First(x => x.Name == "GetValue");
+
+			Expression value = Expression.Call(record, getter, Expression.Constant(col.Index));
 			if (value.Type == typeof(Object))
 				value = Expression.Unbox(value, col.Type);
 			if (value.Type != returnType)
 				value = Expression.Convert(value, returnType);
 			if (!returnType.IsValueType || returnType.IsNullable())
 				value = Expression.Condition(Expression.Call(record, IsDBNull, Expression.Constant(col.Index)), Expression.Default(value.Type), value);
+
 			return value;
 		}
 
-		static MethodInfo FindGetter(Type type)
+		static IEnumerable<RecordColumn> GetColumns(IDataReader reader, bool tableInfo)
 		{
-			var getterName = "Get" + (!type.IsNullable() ? type.Name : type.GetGenericArguments()[0].Name);
-			if (getterName == "GetSingle")
-				getterName = "GetFloat";
-			return Getters.FirstOrDefault(x => x.Name == getterName) ?? Getters.First(x => x.Name == "GetValue");
-		}
-
-		static IEnumerable<RecordColumn> GetSchema(IDataReader reader)
-		{
-			var tableMap = reader.GetSchemaTable().Rows.Cast<DataRow>()
+			var tableMap = (!tableInfo ? EmptyDataRows : reader.GetSchemaTable().Rows.Cast<DataRow>())
 				.Select(x => new { Index = x.Field<int>("ColumnOrdinal"), Table = x.Field<string>("BaseTableName") })
 				.ToList();
 
@@ -98,7 +109,7 @@ namespace Slapper.Reflection
 					Index = i,
 					Name = reader.GetName(i).ToLower(),
 					Type = reader.GetFieldType(i),
-					Table = (tableMap.Where(x => x.Index == i).Select(x => x.Table).FirstOrDefault() ?? "").ToLower(),
+					Table = !tableInfo ? null : (tableMap.Where(x => x.Index == i).Select(x => x.Table).FirstOrDefault() ?? "").ToLower(),
 				};
 			}
 		}
