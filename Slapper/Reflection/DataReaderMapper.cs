@@ -13,8 +13,10 @@ namespace Slapper.Reflection
 {
 	public static class DataReaderMapper
 	{
-		static MethodInfo[] GetterCache;
-		static MethodInfo IsDBNull;
+		static Dictionary<string, MethodInfo> TypedGetters;
+		static MethodInfo IsDBNullGetter;
+		static MethodInfo ObjectValueGetter;
+
 		static BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
 		static ConcurrentDictionary<string, object> ObjectMapCache = new ConcurrentDictionary<string, object>();
 		static ConcurrentDictionary<string, object> ValueMapCache = new ConcurrentDictionary<string, object>();
@@ -22,14 +24,17 @@ namespace Slapper.Reflection
 
 		static DataReaderMapper()
 		{
-			IsDBNull = typeof(IDataRecord).GetMethod("IsDBNull", new Type[] { typeof(int) });
-			GetterCache = typeof(IDataRecord).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-				.Where(x => x.Name.StartsWith("Get"))
+			var getters = typeof(IDataRecord).GetMethods(BindingFlags.Public | BindingFlags.Instance)
 				.Where(x => {
 					var prms = x.GetParameters();
 					return prms.Length == 1 && prms[0].ParameterType == typeof(int);
 				})
-				.ToArray();
+				.ToList();
+
+			IsDBNullGetter = getters.First(x => x.Name == "IsDBNull");
+			ObjectValueGetter = getters.FirstOrDefault(x => x.Name == "GetValue");
+			TypedGetters = getters.Where(x => x.Name.StartsWith("Get"))
+				.ToDictionary(x => x.Name == "GetFloat" ? "GetSingle" : x.Name);
 		}
 
 		public static Func<IDataRecord, T> CreateMapper<T>(string sql, IDataReader reader)
@@ -37,7 +42,7 @@ namespace Slapper.Reflection
 			var t = typeof(T);
 			var key = t.FullName + ":" + sql;
 
-			if (t.IsScalar())
+			if (t.IsDbPrimitive())
 				return (Func<IDataRecord, T>)ValueMapCache.GetOrAdd(key, (s) => CreateValueMapper<T>(reader));
 			return (Func<IDataRecord, T>)ObjectMapCache.GetOrAdd(key, (s) => CreateObjectMapper<T>(reader));
 		}
@@ -81,17 +86,20 @@ namespace Slapper.Reflection
 
 		static Expression GetColumnValue(Expression record, RecordColumn col, Type expectedType)
 		{
-			var typeName = !col.Type.IsNullable() ? col.Type.Name : col.Type.GetGenericArguments()[0].Name;
-			var getterName = typeName == "Single" ? "GetFloat" : "Get" + typeName;
-			var getter = GetterCache.FirstOrDefault(x => x.Name == getterName) ?? GetterCache.First(x => x.Name == "GetValue");
+			var typeName = (col.Type.IsNullable() ? col.Type.GetGenericArguments()[0] : col.Type).Name;
+			var idx = Expression.Constant(col.Index);
 
-			Expression expr = Expression.Call(record, getter, Expression.Constant(col.Index));
+			MethodInfo getter;
+			if (!TypedGetters.TryGetValue(typeName, out getter))
+				getter = ObjectValueGetter;
+
+			Expression expr = Expression.Call(record, getter, idx);
 			if (expr.Type == typeof(Object))
 				expr = Expression.Unbox(expr, col.Type);
 			if (expr.Type != expectedType)
 				expr = Expression.Convert(expr, expectedType);
 			if (!expectedType.IsValueType || expectedType.IsNullable())
-				expr = Expression.Condition(Expression.Call(record, IsDBNull, Expression.Constant(col.Index)), Expression.Default(expr.Type), expr);
+				expr = Expression.Condition(Expression.Call(record, IsDBNullGetter, idx), Expression.Default(expr.Type), expr);
 
 			return expr;
 		}
