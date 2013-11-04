@@ -31,5 +31,16 @@ namespace Slapper.Tests.DB
 				Assert.AreEqual(1, company);
 			}
 		}
+
+		[TestMethod]
+		public void TransactionSupport()
+		{
+			using (var conn = OpenConnection())
+			using (var txn = conn.BeginTransaction("test-transaction"))
+			{
+				txn.ExecuteScalar<int>("select count(*) from Company");
+				txn.Rollback();
+			}
+		}
 	}
 }

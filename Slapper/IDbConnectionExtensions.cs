@@ -9,10 +9,11 @@ namespace Slapper
 {
 	public static class IDbConnectionExtensions
 	{
-		public static IDbCommand CreateCommand(this IDbConnection conn, string sql)
+		public static IDbCommand CreateCommand(this IDbConnection conn, string sql, IDbTransaction transaction = null)
 		{
 			var cmd = conn.CreateCommand();
-			cmd.Connection = conn; // just in case
+			cmd.Connection = conn;
+			cmd.Transaction = transaction;
 			cmd.CommandText = sql;
 			return cmd;
 		}

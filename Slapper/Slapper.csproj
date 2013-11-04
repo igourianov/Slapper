@@ -45,6 +45,7 @@
     <Compile Include="Attributes\SlapperFieldModifierAttribute.cs" />
     <Compile Include="Attributes\SlapperAttribute.cs" />
     <Compile Include="IDbCommandExtensions.cs" />
+    <Compile Include="IDbTransactionExtensions.cs" />
     <Compile Include="QueryExtensions.cs" />
     <Compile Include="Reflection\DataReaderMapper.cs" />
     <Compile Include="Reflection\Parameter.cs" />
