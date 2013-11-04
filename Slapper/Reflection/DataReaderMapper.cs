@@ -29,7 +29,6 @@ namespace Slapper.Reflection
 					var prms = x.GetParameters();
 					return prms.Length == 1 && prms[0].ParameterType == typeof(int);
 				})
-				.OrderBy(x => x.Name)
 				.ToArray();
 		}
 
@@ -46,7 +45,7 @@ namespace Slapper.Reflection
 		public static Func<IDataRecord, T> CreateValueMapper<T>(IDataReader reader)
 		{
 			var record = Expression.Parameter(typeof(IDataRecord), "record");
-			return Expression.Lambda<Func<IDataRecord, T>>(RecordValue(record, GetColumns(reader, false).First(), typeof(T)), record).Compile();
+			return Expression.Lambda<Func<IDataRecord, T>>(GetColumnValue(record, GetColumns(reader, false).First(), typeof(T)), record).Compile();
 		}
 
 		public static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
@@ -67,7 +66,7 @@ namespace Slapper.Reflection
 				{
 					try
 					{
-						init.Add(Expression.Bind(m.Info, RecordValue(record, col, m.Type)));
+						init.Add(Expression.Bind(m.Info, GetColumnValue(record, col, m.Type)));
 					}
 					catch (Exception e)
 					{
@@ -80,21 +79,21 @@ namespace Slapper.Reflection
 			return Expression.Lambda<Func<IDataRecord, T>>(block, record).Compile();
 		}
 
-		static Expression RecordValue(Expression record, RecordColumn col, Type returnType)
+		static Expression GetColumnValue(Expression record, RecordColumn col, Type expectedType)
 		{
 			var typeName = !col.Type.IsNullable() ? col.Type.Name : col.Type.GetGenericArguments()[0].Name;
 			var getterName = typeName == "Single" ? "GetFloat" : "Get" + typeName;
 			var getter = GetterCache.FirstOrDefault(x => x.Name == getterName) ?? GetterCache.First(x => x.Name == "GetValue");
 
-			Expression value = Expression.Call(record, getter, Expression.Constant(col.Index));
-			if (value.Type == typeof(Object))
-				value = Expression.Unbox(value, col.Type);
-			if (value.Type != returnType)
-				value = Expression.Convert(value, returnType);
-			if (!returnType.IsValueType || returnType.IsNullable())
-				value = Expression.Condition(Expression.Call(record, IsDBNull, Expression.Constant(col.Index)), Expression.Default(value.Type), value);
+			Expression expr = Expression.Call(record, getter, Expression.Constant(col.Index));
+			if (expr.Type == typeof(Object))
+				expr = Expression.Unbox(expr, col.Type);
+			if (expr.Type != expectedType)
+				expr = Expression.Convert(expr, expectedType);
+			if (!expectedType.IsValueType || expectedType.IsNullable())
+				expr = Expression.Condition(Expression.Call(record, IsDBNull, Expression.Constant(col.Index)), Expression.Default(expr.Type), expr);
 
-			return value;
+			return expr;
 		}
 
 		static IEnumerable<RecordColumn> GetColumns(IDataReader reader, bool tableInfo)
