@@ -12,6 +12,22 @@ namespace Slapper.Tests.DB
 	public class QueryTests : TestBase
 	{
 		[TestMethod]
+		public void QueryTuple()
+		{
+			using (var conn = OpenConnection())
+			{
+				var list = conn.Query<Tuple<Employee,Company>>(@"
+select *
+from Employee e
+inner join Company c on(c.ID=e.CompanyID)").ToList();
+
+				Assert.AreNotEqual(0, list.Count);
+				Assert.IsFalse(list.All(x => x.Item1.ID == x.Item2.ID));
+				Assert.IsFalse(list.All(x => x.Item1.Name == x.Item2.Name));
+			}
+		}
+
+		[TestMethod]
 		public void QueryObjects()
 		{
 			using (var conn = OpenConnection())
@@ -71,34 +87,6 @@ inner join Company c on(c.ID=e.CompanyID)
 			using (var conn = OpenConnection())
 			{
 				var list = conn.Query<BadEmployee>("select * from Employee").ToList();
-			}
-		}
-		/*
-		[TestMethod]
-		public void QueryObjectTuple()
-		{
-			using (var conn = OpenConnection())
-			{
-				var list = conn.Query<Employee, Company>(@"
-select *
-from Employee e
-inner join Company c on(c.ID=e.CompanyID)
-").ToList();
-				
-				Assert.AreNotEqual(0, list.Count);
-				Assert.IsFalse(list.All(x => x.Item1.ID == x.Item2.ID));
-				Assert.IsFalse(list.All(x => x.Item1.Name == x.Item2.Name));
-			}
-		}
-		*/
-		[TestMethod]
-		public void QueryWithParamList()
-		{
-			using (var conn = OpenConnection())
-			{
-				var list = conn.Query<Employee>("select * from Employee where ID in(@ids)", new { ids = new int[] { 2, 6 } }).ToList();
-				Assert.AreEqual(2, list.Count);
-				Assert.IsTrue(list.Count(x => x.ID == 2 || x.ID == 6) == 2);
 			}
 		}
 
