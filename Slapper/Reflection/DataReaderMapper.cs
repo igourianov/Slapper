@@ -123,16 +123,16 @@ namespace Slapper.Reflection
 		static IEnumerable<RecordColumn> GetColumns(IDataReader reader, bool tableInfo)
 		{
 			var tableMap = (!tableInfo ? EmptyDataRows : reader.GetSchemaTable().Rows.Cast<DataRow>())
-				.Select(x => new { Index = x.Field<int>("ColumnOrdinal"), Table = x.Field<string>("BaseTableName") })
-				.ToList();
+				.ToDictionary(x => x.Field<int>("ColumnOrdinal"), x => x.Field<string>("BaseTableName").ToLower());
 
 			for (int i = 0; i < reader.FieldCount; i++)
 			{
+				string table;
 				yield return new RecordColumn {
 					Index = i,
 					Name = reader.GetName(i).ToLower(),
 					Type = reader.GetFieldType(i),
-					Table = !tableInfo ? null : (tableMap.Where(x => x.Index == i).Select(x => x.Table).FirstOrDefault() ?? "").ToLower(),
+					Table = tableInfo && tableMap.TryGetValue(i, out table) ? table : null,
 				};
 			}
 		}

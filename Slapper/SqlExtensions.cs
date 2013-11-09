@@ -44,9 +44,8 @@ namespace Slapper
 			if (parameters == null)
 				return;
 
-			foreach (var p in ParameterMapper.Read(parameters))
-				if (command.CommandText.Contains("@" + p.Name))
-					command.Parameters.Add(CreateParameter(command, p.Name, p.Value));
+			foreach (var p in ParameterMapper.Read(parameters).Where(x => command.CommandText.Contains("@" + x.Name)))
+				command.Parameters.Add(CreateParameter(command, p.Name, p.Value));
 		}
 
 		static IDbDataParameter CreateParameter(IDbCommand command, string name, object value)
