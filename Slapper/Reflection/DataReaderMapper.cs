@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Slapper.Attributes;
+using System.Runtime.Caching;
 
 namespace Slapper.Reflection
 {
@@ -17,7 +18,9 @@ namespace Slapper.Reflection
 		static MethodInfo IsDBNullGetter;
 		static MethodInfo ObjectValueGetter;
 
-		static ConcurrentDictionary<string, object> MapCache = new ConcurrentDictionary<string, object>();
+		static CacheItemPolicy CachePolicy = new CacheItemPolicy { SlidingExpiration = new TimeSpan(0, 5, 0) };
+		static ObjectCache MapCache = new MemoryCache("SlapperDataReaderMapCache");
+
 		static BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
 		static DataRow[] EmptyDataRows = new DataRow[0];
 
@@ -42,10 +45,21 @@ namespace Slapper.Reflection
 			var key = t.FullName + ":" + sql;
 
 			if (t.IsTuple())
-				return (Func<IDataRecord, T>)MapCache.GetOrAdd(key, (s) => CreateTupleMapper<T>(reader));
+				return (Func<IDataRecord, T>)GetOrAdd(key, (s) => CreateTupleMapper<T>(reader));
 			if (t.IsDbPrimitive())
-				return (Func<IDataRecord, T>)MapCache.GetOrAdd(key, (s) => CreateValueMapper<T>(reader));
-			return (Func<IDataRecord, T>)MapCache.GetOrAdd(key, (s) => CreateObjectMapper<T>(reader));
+				return (Func<IDataRecord, T>)GetOrAdd(key, (s) => CreateValueMapper<T>(reader));
+			return (Func<IDataRecord, T>)GetOrAdd(key, (s) => CreateObjectMapper<T>(reader));
+		}
+
+		static object GetOrAdd(string key, Func<string, object> factory)
+		{
+			var ret = MapCache.Get(key);
+			if (ret == null)
+			{
+				ret = factory(key);
+				MapCache.Set(key, ret, CachePolicy);
+			}
+			return ret;
 		}
 
 		static Func<IDataRecord, T> CreateTupleMapper<T>(IDataReader reader)
@@ -105,6 +119,9 @@ namespace Slapper.Reflection
 				if (col != null)
 					init.Add(Expression.Bind(m.Info, MapColumn(record, col.Index, col.Type, m.Type)));
 			}
+
+			if (init.Count == 0)
+				return Expression.New(t);
 
 			return Expression.MemberInit(Expression.New(t), init);
 		}
