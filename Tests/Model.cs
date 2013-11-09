@@ -10,11 +10,11 @@ namespace Slapper.Tests.Model
 	{
 		#region ID
 		[SlapperField("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
-		protected Int32 _ID_Value;
+		protected int? _ID_Value;
 		[SlapperFieldModifier("ID")]
 		protected bool _ID_Modified;
 		[SlapperIgnore]
-		public virtual Int32 ID
+		public virtual int? ID
 		{
 			get
 			{
@@ -50,11 +50,11 @@ namespace Slapper.Tests.Model
 		#endregion
 		#region CompanyID
 		[SlapperField("CompanyID")]
-		protected Int32 _CompanyID_Value;
+		protected int? _CompanyID_Value;
 		[SlapperFieldModifier("CompanyID")]
 		protected bool _CompanyID_Modified;
 		[SlapperIgnore]
-		public virtual Int32 CompanyID
+		public virtual int? CompanyID
 		{
 			get
 			{
@@ -94,11 +94,11 @@ namespace Slapper.Tests.Model
 	{
 		#region ID
 		[SlapperField("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
-		protected Int32 _ID_Value;
+		protected int? _ID_Value;
 		[SlapperFieldModifier("ID")]
 		protected bool _ID_Modified;
 		[SlapperIgnore]
-		public virtual Int32 ID
+		public virtual int? ID
 		{
 			get
 			{

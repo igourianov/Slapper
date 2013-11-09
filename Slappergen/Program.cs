@@ -83,7 +83,26 @@ namespace {0}
 
 		static string GetTypeName(Type t, bool nullable)
 		{
-			return t.Name + (t.IsValueType && nullable ? "?" : "");
+			string name;
+			switch (t.Name)
+			{
+				case "Int32":
+					name = "int";
+					break;
+				case "Int64":
+					name = "long";
+					break;
+				case "Single":
+					name = "float";
+					break;
+				case "Boolean":
+					name = "bool";
+					break;
+				default:
+					name = t.Name;
+					break;
+			}
+			return name + (t.IsValueType ? "?" : "");
 		}
 
 		static string GetMemberName(string name)
