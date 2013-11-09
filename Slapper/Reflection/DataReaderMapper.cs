@@ -64,8 +64,11 @@ namespace Slapper.Reflection
 					values.Add(MapColumn(record, primIndex, columns[primIndex].Type, t));
 					primIndex++;
 				}
-				var table = GetTableName(t);
-				values.Add(MapObject(t, record, columns));
+				else
+				{
+					var table = GetTableName(t);
+					values.Add(MapObject(t, record, columns));
+				}
 			}
 
 			return Expression.Lambda<Func<IDataRecord, T>>(Expression.New(ctor, values), record).Compile();

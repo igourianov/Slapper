@@ -12,7 +12,36 @@ namespace Slapper.Tests.DB
 	public class QueryTests : TestBase
 	{
 		[TestMethod]
-		public void QueryTuple()
+		public void QueryMixedTuple()
+		{
+			using (var conn = OpenConnection())
+			{
+				var list = conn.Query<Tuple<string, Employee>>(@"
+select c.Name, e.*
+from Employee e
+inner join Company c on(c.ID=e.CompanyID)").ToList();
+				Assert.AreNotEqual(0, list.Count);
+				Assert.AreEqual("Planet Express", list[0].Item1);
+				Assert.AreEqual("Philip Fry", list[0].Item2.Name);
+			}
+		}
+
+		[TestMethod]
+		public void QueryValueTuple()
+		{
+			using (var conn = OpenConnection())
+			{
+				var list = conn.Query<Tuple<int, string>>(@"select ID, Name from Employee").ToList();
+				Assert.AreNotEqual(0, list.Count);
+				Assert.AreEqual(1, list[0].Item1);
+				Assert.AreEqual("Philip Fry", list[0].Item2);
+				Assert.AreEqual(2, list[1].Item1);
+				Assert.AreEqual("Bender", list[1].Item2);
+			}
+		}
+
+		[TestMethod]
+		public void QueryObjectTuple()
 		{
 			using (var conn = OpenConnection())
 			{
@@ -61,7 +90,7 @@ inner join Company c on(c.ID=e.CompanyID)
 		}
 
 		[TestMethod]
-		public void QueryValues()
+		public void QueryValueList()
 		{
 			using (var conn = OpenConnection())
 			{
