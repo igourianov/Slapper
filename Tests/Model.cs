@@ -1,24 +1,31 @@
 // Slappergen Model
 #pragma warning disable 414,649
 using Slapper.Attributes;
+using System.Diagnostics;
 
 namespace Slapper.Tests.Model
 {
-	[Entity("Employee")]
+	[Entity("Employee"), DebuggerNonUserCode,
+	System.CodeDom.Compiler.GeneratedCodeAttribute("Slappergen", "1.0")]
 	public partial class Employee
 	{
 		#region ID
-		[Field("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
+		[Field("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected int? _ID_Value;
-		[Ignore, Modifier("ID")]
+		[Ignore,
+		Modifier("ID"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected bool _ID_Modified;
 		[Ignore]
 		public virtual int? ID
 		{
+			[DebuggerStepThrough]
 			get
 			{
 				return _ID_Value;
 			}
+			[DebuggerStepThrough]
 			set
 			{
 				if (!_ID_Modified)
@@ -28,17 +35,22 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region Name
-		[Field("Name")]
+		[Field("Name"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected string _Name_Value;
-		[Ignore, Modifier("Name")]
+		[Ignore,
+		Modifier("Name"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected bool _Name_Modified;
 		[Ignore]
 		public virtual string Name
 		{
+			[DebuggerStepThrough]
 			get
 			{
 				return _Name_Value;
 			}
+			[DebuggerStepThrough]
 			set
 			{
 				if (!_Name_Modified)
@@ -48,17 +60,22 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region CompanyID
-		[Field("CompanyID")]
+		[Field("CompanyID"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected int? _CompanyID_Value;
-		[Ignore, Modifier("CompanyID")]
+		[Ignore,
+		Modifier("CompanyID"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected bool _CompanyID_Modified;
 		[Ignore]
 		public virtual int? CompanyID
 		{
+			[DebuggerStepThrough]
 			get
 			{
 				return _CompanyID_Value;
 			}
+			[DebuggerStepThrough]
 			set
 			{
 				if (!_CompanyID_Modified)
@@ -68,17 +85,22 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region ShiftStart
-		[Field("ShiftStart")]
+		[Field("ShiftStart"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected System.TimeSpan? _ShiftStart_Value;
-		[Ignore, Modifier("ShiftStart")]
+		[Ignore,
+		Modifier("ShiftStart"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected bool _ShiftStart_Modified;
 		[Ignore]
 		public virtual System.TimeSpan? ShiftStart
 		{
+			[DebuggerStepThrough]
 			get
 			{
 				return _ShiftStart_Value;
 			}
+			[DebuggerStepThrough]
 			set
 			{
 				if (!_ShiftStart_Modified)
@@ -88,21 +110,27 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 	}
-	[Entity("Company")]
+	[Entity("Company"), DebuggerNonUserCode,
+	System.CodeDom.Compiler.GeneratedCodeAttribute("Slappergen", "1.0")]
 	public partial class Company
 	{
 		#region ID
-		[Field("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
+		[Field("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected int? _ID_Value;
-		[Ignore, Modifier("ID")]
+		[Ignore,
+		Modifier("ID"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected bool _ID_Modified;
 		[Ignore]
 		public virtual int? ID
 		{
+			[DebuggerStepThrough]
 			get
 			{
 				return _ID_Value;
 			}
+			[DebuggerStepThrough]
 			set
 			{
 				if (!_ID_Modified)
@@ -112,17 +140,22 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region Name
-		[Field("Name")]
+		[Field("Name"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected string _Name_Value;
-		[Ignore, Modifier("Name")]
+		[Ignore,
+		Modifier("Name"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected bool _Name_Modified;
 		[Ignore]
 		public virtual string Name
 		{
+			[DebuggerStepThrough]
 			get
 			{
 				return _Name_Value;
 			}
+			[DebuggerStepThrough]
 			set
 			{
 				if (!_Name_Modified)
@@ -132,17 +165,22 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region IndexName
-		[Field("IndexName", FieldFlags.ReadOnly)]
+		[Field("IndexName", FieldFlags.ReadOnly),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected string _IndexName_Value;
-		[Ignore, Modifier("IndexName")]
+		[Ignore,
+		Modifier("IndexName"),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected bool _IndexName_Modified;
 		[Ignore]
 		public virtual string IndexName
 		{
+			[DebuggerStepThrough]
 			get
 			{
 				return _IndexName_Value;
 			}
+			[DebuggerStepThrough]
 			set
 			{
 				if (!_IndexName_Modified)

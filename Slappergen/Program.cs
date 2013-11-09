@@ -24,6 +24,7 @@ namespace Slappergen
 				writer.WriteLine(@"// Slappergen Model
 #pragma warning disable 414,649
 using Slapper.Attributes;
+using System.Diagnostics;
 
 namespace {0}
 {{", ns);
@@ -38,7 +39,8 @@ namespace {0}
 			foreach (var table in conn.Query<string>(@"select name from sysobjects where xtype='U'").ToList())
 			{
 				var className = GetMemberName(table);
-				writer.WriteLine(@"	[Entity(""{0}"")]
+				writer.WriteLine(@"	[Entity(""{0}""), DebuggerNonUserCode,
+	System.CodeDom.Compiler.GeneratedCodeAttribute(""Slappergen"", ""1.0"")]
 	public partial class {1}
 	{{", table, className);
 
@@ -54,17 +56,22 @@ namespace {0}
 						.ToArray();
 
 					writer.Write(@"		#region {1}
-		[Field(""{2}""{3})]
+		[Field(""{2}""{3}),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected {0} _{1}_Value;
-		[Ignore, Modifier(""{2}"")]
+		[Ignore,
+		Modifier(""{2}""),
+		DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		protected bool _{1}_Modified;
 		[Ignore]
 		public virtual {0} {1}
 		{{
+			[DebuggerStepThrough]
 			get
 			{{
 				return _{1}_Value;
 			}}
+			[DebuggerStepThrough]
 			set
 			{{
 				if (!_{1}_Modified)
