@@ -19,7 +19,7 @@ namespace Slapper
 
 			using (var reader = conn.ExecuteReader(sql, args, behavior))
 			{
-				var map = DataReaderMapper.CreateMapper<T>(sql, reader);
+				var map = DataReaderMapper.GetMapper<T>(sql, reader);
 				while (reader.Read())
 					yield return map(reader);
 			}

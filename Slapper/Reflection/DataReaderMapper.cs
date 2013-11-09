@@ -17,9 +17,8 @@ namespace Slapper.Reflection
 		static MethodInfo IsDBNullGetter;
 		static MethodInfo ObjectValueGetter;
 
+		static ConcurrentDictionary<string, object> MapCache = new ConcurrentDictionary<string, object>();
 		static BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
-		static ConcurrentDictionary<string, object> ObjectMapCache = new ConcurrentDictionary<string, object>();
-		static ConcurrentDictionary<string, object> ValueMapCache = new ConcurrentDictionary<string, object>();
 		static DataRow[] EmptyDataRows = new DataRow[0];
 
 		static DataReaderMapper()
@@ -37,23 +36,31 @@ namespace Slapper.Reflection
 				.ToDictionary(x => x.Name == "GetFloat" ? "GetSingle" : x.Name);
 		}
 
-		public static Func<IDataRecord, T> CreateMapper<T>(string sql, IDataReader reader)
+		public static Func<IDataRecord, T> GetMapper<T>(string sql, IDataReader reader)
 		{
 			var t = typeof(T);
 			var key = t.FullName + ":" + sql;
 
+			if (t.IsTuple())
+				return (Func<IDataRecord, T>)MapCache.GetOrAdd(key, (s) => CreateTupleMapper<T>(reader));
 			if (t.IsDbPrimitive())
-				return (Func<IDataRecord, T>)ValueMapCache.GetOrAdd(key, (s) => CreateValueMapper<T>(reader));
-			return (Func<IDataRecord, T>)ObjectMapCache.GetOrAdd(key, (s) => CreateObjectMapper<T>(reader));
+				return (Func<IDataRecord, T>)MapCache.GetOrAdd(key, (s) => CreateValueMapper<T>(reader));
+			return (Func<IDataRecord, T>)MapCache.GetOrAdd(key, (s) => CreateObjectMapper<T>(reader));
 		}
 
-		public static Func<IDataRecord, T> CreateValueMapper<T>(IDataReader reader)
+		static Func<IDataRecord, T> CreateTupleMapper<T>(IDataReader reader)
+		{
+			return null;
+		}
+
+		static Func<IDataRecord, T> CreateValueMapper<T>(IDataReader reader)
 		{
 			var record = Expression.Parameter(typeof(IDataRecord), "record");
-			return Expression.Lambda<Func<IDataRecord, T>>(GetColumnValue(record, GetColumns(reader, false).First(), typeof(T)), record).Compile();
+			var col = GetColumns(reader, false).First();
+			return Expression.Lambda<Func<IDataRecord, T>>(GetColumnValue(record, col.Index, col.Type, typeof(T)), record).Compile();
 		}
 
-		public static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
+		static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
 		{
 			var t = typeof(T);
 			var attr = t.GetCustomAttributes<SlapperEntityAttribute>().FirstOrDefault();
@@ -68,37 +75,46 @@ namespace Slapper.Reflection
 			{
 				var col = schema.FirstOrDefault(x => x.Name == m.Name);
 				if (col != null)
-				{
-					try
-					{
-						init.Add(Expression.Bind(m.Info, GetColumnValue(record, col, m.Type)));
-					}
-					catch (Exception e)
-					{
-						throw new MemberMappingException(t, m.Info, e);
-					}
-				}
+					init.Add(Expression.Bind(m.Info, GetColumnValue(record, col.Index, col.Type, m.Type)));
 			}
 
 			var block = Expression.Block(t, Expression.MemberInit(Expression.New(t), init));
 			return Expression.Lambda<Func<IDataRecord, T>>(block, record).Compile();
 		}
 
-		static Expression GetColumnValue(Expression record, RecordColumn col, Type expectedType)
+		static Expression GetColumnValue(Expression record, int index, Type dbType, Type expectedType)
 		{
-			var typeName = (col.Type.IsNullable() ? col.Type.GetGenericArguments()[0] : col.Type).Name;
-			var idx = Expression.Constant(col.Index);
-
 			MethodInfo getter;
-			if (!TypedGetters.TryGetValue(typeName, out getter))
+			if (!TypedGetters.TryGetValue("Get" + dbType.Name, out getter))
 				getter = ObjectValueGetter;
 
-			Expression expr = Expression.Call(record, getter, idx);
+			var idx = Expression.Constant(index);
+			var expr = (Expression)Expression.Call(record, getter, idx);
+
 			if (expr.Type == typeof(Object))
-				expr = Expression.Unbox(expr, col.Type);
-			if (expr.Type != expectedType)
-				expr = Expression.Convert(expr, expectedType);
-			if (!expectedType.IsValueType || expectedType.IsNullable())
+			{
+				if (!dbType.IsValueType)
+					expr = Expression.Convert(expr, dbType);
+				else if (expectedType.IsNullableOf(dbType))
+					expr = Expression.Unbox(expr, expectedType);
+				else
+					expr = Expression.Unbox(expr, dbType);
+			}
+
+			try
+			{
+				// this is likely to throw if field type doesn't match column type
+				if (expr.Type != expectedType)
+					expr = Expression.Convert(expr, expectedType); 
+			}
+			catch (Exception e)
+			{
+				throw new MemberMappingException(e);
+			}
+
+			if (!expectedType.IsValueType)
+				expr = Expression.Condition(Expression.Call(record, IsDBNullGetter, idx), Expression.Constant(null, expr.Type), expr);
+			else if (expectedType.IsNullable())
 				expr = Expression.Condition(Expression.Call(record, IsDBNullGetter, idx), Expression.Default(expr.Type), expr);
 
 			return expr;
@@ -133,7 +149,8 @@ namespace Slapper.Reflection
 		{
 			foreach (var p in t.GetProperties(MemberFlags)
 				.Where(x => x.CanWrite && x.GetIndexParameters().Length == 0)
-				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null))
+				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null)
+				.Where(x => x.GetCustomAttribute<SlapperFieldModifierAttribute>() == null))
 			{
 				var attr = p.GetCustomAttribute<SlapperFieldAttribute>();
 				yield return new ObjectMember {
@@ -145,7 +162,8 @@ namespace Slapper.Reflection
 
 			foreach (var f in t.GetFields(MemberFlags)
 				.Where(x => !x.IsInitOnly)
-				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null))
+				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null)
+				.Where(x => x.GetCustomAttribute<SlapperFieldModifierAttribute>() == null))
 			{
 				var attr = f.GetCustomAttribute<SlapperFieldAttribute>();
 				yield return new ObjectMember {
@@ -166,8 +184,8 @@ namespace Slapper.Reflection
 
 		public class MemberMappingException : Exception
 		{
-			public MemberMappingException(Type obj, MemberInfo member, Exception e)
-				: base(String.Format("Error mapping {0}.{1}", obj.FullName, member.Name), e)
+			public MemberMappingException(Exception e)
+				: base("Error mapping", e)
 			{
 			}
 		}

@@ -44,15 +44,13 @@
     <Compile Include="Attributes\SlapperIgnoreAttribute.cs" />
     <Compile Include="Attributes\SlapperFieldModifierAttribute.cs" />
     <Compile Include="Attributes\SlapperAttribute.cs" />
-    <Compile Include="IDbCommandExtensions.cs" />
-    <Compile Include="IDbTransactionExtensions.cs" />
+    <Compile Include="SqlExtensions.cs" />
     <Compile Include="QueryExtensions.cs" />
     <Compile Include="Reflection\DataReaderMapper.cs" />
     <Compile Include="Reflection\Parameter.cs" />
     <Compile Include="Reflection\TypeExtensions.cs" />
     <Compile Include="Reflection\ParameterMapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="IDbConnectionExtensions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
