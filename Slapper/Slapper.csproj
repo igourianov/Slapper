@@ -45,8 +45,7 @@
     <Compile Include="Attributes\IgnoreAttribute.cs" />
     <Compile Include="Attributes\ModifierAttribute.cs" />
     <Compile Include="Attributes\SlapperAttribute.cs" />
-    <Compile Include="SqlExtensions.cs" />
-    <Compile Include="QueryExtensions.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Reflection\DataReaderMapper.cs" />
     <Compile Include="Reflection\Parameter.cs" />
     <Compile Include="Reflection\TypeExtensions.cs" />

@@ -2,10 +2,11 @@
 using System.Linq;
 using System.Data;
 using Slapper.Reflection;
+using System.Collections.Generic;
 
 namespace Slapper
 {
-	public static class SqlExtensions
+	public static class Extensions
 	{
 		#region IDbCommand
 
@@ -33,6 +34,20 @@ namespace Slapper
 		{
 			SetParams(command, parameters);
 			return command.ExecuteReader(behavior);
+		}
+
+		public static IEnumerable<T> Query<T>(this IDbCommand command, object parameters = null)
+		{
+			var behavior = CommandBehavior.SingleResult;
+			if (typeof(T).IsTuple())
+				behavior |= CommandBehavior.KeyInfo;
+
+			using (var reader = command.ExecuteReader(parameters, behavior))
+			{
+				var map = DataReaderMapper.GetMapper<T>(command.CommandText, reader);
+				while (reader.Read())
+					yield return map(reader);
+			}
 		}
 
 		static void SetParams(IDbCommand command, object parameters)
@@ -85,6 +100,12 @@ namespace Slapper
 				return cmd.ExecuteReader(parameters, behavior);
 		}
 
+		public static IEnumerable<T> Query<T>(this IDbConnection connection, string sql, object parameters = null)
+		{
+			using (var cmd = connection.CreateCommand(sql))
+				return cmd.Query<T>(parameters);
+		}
+
 		#endregion
 
 		#region IDbTransaction
@@ -105,6 +126,12 @@ namespace Slapper
 		{
 			using (var cmd = transaction.Connection.CreateCommand(sql, transaction))
 				return cmd.ExecuteReader(parameters, behavior);
+		}
+
+		public static IEnumerable<T> Query<T>(this IDbTransaction transaction, string sql, object parameters = null)
+		{
+			using (var cmd = transaction.Connection.CreateCommand(sql, transaction))
+				return cmd.Query<T>(parameters);
 		}
 
 		#endregion
