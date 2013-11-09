@@ -1,19 +1,18 @@
 // Slappergen Model
 #pragma warning disable 414,649
-using System;
 using Slapper.Attributes;
 
 namespace Slapper.Tests.Model
 {
-	[SlapperEntity("Employee")]
+	[Entity("Employee")]
 	public partial class Employee
 	{
 		#region ID
-		[SlapperField("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
+		[Field("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
 		protected int? _ID_Value;
-		[SlapperFieldModifier("ID")]
+		[Ignore, Modifier("ID")]
 		protected bool _ID_Modified;
-		[SlapperIgnore]
+		[Ignore]
 		public virtual int? ID
 		{
 			get
@@ -29,12 +28,12 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region Name
-		[SlapperField("Name")]
-		protected String _Name_Value;
-		[SlapperFieldModifier("Name")]
+		[Field("Name")]
+		protected string _Name_Value;
+		[Ignore, Modifier("Name")]
 		protected bool _Name_Modified;
-		[SlapperIgnore]
-		public virtual String Name
+		[Ignore]
+		public virtual string Name
 		{
 			get
 			{
@@ -49,11 +48,11 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region CompanyID
-		[SlapperField("CompanyID")]
+		[Field("CompanyID")]
 		protected int? _CompanyID_Value;
-		[SlapperFieldModifier("CompanyID")]
+		[Ignore, Modifier("CompanyID")]
 		protected bool _CompanyID_Modified;
-		[SlapperIgnore]
+		[Ignore]
 		public virtual int? CompanyID
 		{
 			get
@@ -69,12 +68,12 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region ShiftStart
-		[SlapperField("ShiftStart")]
-		protected TimeSpan? _ShiftStart_Value;
-		[SlapperFieldModifier("ShiftStart")]
+		[Field("ShiftStart")]
+		protected System.TimeSpan? _ShiftStart_Value;
+		[Ignore, Modifier("ShiftStart")]
 		protected bool _ShiftStart_Modified;
-		[SlapperIgnore]
-		public virtual TimeSpan? ShiftStart
+		[Ignore]
+		public virtual System.TimeSpan? ShiftStart
 		{
 			get
 			{
@@ -89,15 +88,15 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 	}
-	[SlapperEntity("Company")]
+	[Entity("Company")]
 	public partial class Company
 	{
 		#region ID
-		[SlapperField("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
+		[Field("ID", FieldFlags.Key | FieldFlags.ReadOnly | FieldFlags.Identity)]
 		protected int? _ID_Value;
-		[SlapperFieldModifier("ID")]
+		[Ignore, Modifier("ID")]
 		protected bool _ID_Modified;
-		[SlapperIgnore]
+		[Ignore]
 		public virtual int? ID
 		{
 			get
@@ -113,12 +112,12 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region Name
-		[SlapperField("Name")]
-		protected String _Name_Value;
-		[SlapperFieldModifier("Name")]
+		[Field("Name")]
+		protected string _Name_Value;
+		[Ignore, Modifier("Name")]
 		protected bool _Name_Modified;
-		[SlapperIgnore]
-		public virtual String Name
+		[Ignore]
+		public virtual string Name
 		{
 			get
 			{
@@ -133,12 +132,12 @@ namespace Slapper.Tests.Model
 		}
 		#endregion
 		#region IndexName
-		[SlapperField("IndexName", FieldFlags.ReadOnly)]
-		protected String _IndexName_Value;
-		[SlapperFieldModifier("IndexName")]
+		[Field("IndexName", FieldFlags.ReadOnly)]
+		protected string _IndexName_Value;
+		[Ignore, Modifier("IndexName")]
 		protected bool _IndexName_Modified;
-		[SlapperIgnore]
-		public virtual String IndexName
+		[Ignore]
+		public virtual string IndexName
 		{
 			get
 			{

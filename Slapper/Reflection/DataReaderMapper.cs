@@ -63,7 +63,7 @@ namespace Slapper.Reflection
 		static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
 		{
 			var t = typeof(T);
-			var attr = t.GetCustomAttributes<SlapperEntityAttribute>().FirstOrDefault();
+			var attr = t.GetCustomAttributes<EntityAttribute>().FirstOrDefault();
 			var tableName = (attr != null && attr.Table != null ? attr.Table : t.Name).ToLower();
 			var schema = GetColumns(reader, false).OrderBy(x => x.Table != tableName).ToList();
 			var members = GetMembers(t).ToList();
@@ -105,7 +105,7 @@ namespace Slapper.Reflection
 			{
 				// this is likely to throw if field type doesn't match column type
 				if (expr.Type != expectedType)
-					expr = Expression.Convert(expr, expectedType); 
+					expr = Expression.Convert(expr, expectedType);
 			}
 			catch (Exception e)
 			{
@@ -149,10 +149,9 @@ namespace Slapper.Reflection
 		{
 			foreach (var p in t.GetProperties(MemberFlags)
 				.Where(x => x.CanWrite && x.GetIndexParameters().Length == 0)
-				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null)
-				.Where(x => x.GetCustomAttribute<SlapperFieldModifierAttribute>() == null))
+				.Where(x => x.GetCustomAttribute<IgnoreAttribute>() == null))
 			{
-				var attr = p.GetCustomAttribute<SlapperFieldAttribute>();
+				var attr = p.GetCustomAttribute<FieldAttribute>();
 				yield return new ObjectMember {
 					Name = (attr != null && attr.Name != null ? attr.Name : p.Name).ToLower(),
 					Type = p.PropertyType,
@@ -162,10 +161,9 @@ namespace Slapper.Reflection
 
 			foreach (var f in t.GetFields(MemberFlags)
 				.Where(x => !x.IsInitOnly)
-				.Where(x => x.GetCustomAttribute<SlapperIgnoreAttribute>() == null)
-				.Where(x => x.GetCustomAttribute<SlapperFieldModifierAttribute>() == null))
+				.Where(x => x.GetCustomAttribute<IgnoreAttribute>() == null))
 			{
-				var attr = f.GetCustomAttribute<SlapperFieldAttribute>();
+				var attr = f.GetCustomAttribute<FieldAttribute>();
 				yield return new ObjectMember {
 					Name = (attr != null && attr.Name != null ? attr.Name : f.Name).ToLower(),
 					Type = f.FieldType,

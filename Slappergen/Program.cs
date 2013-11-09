@@ -23,7 +23,6 @@ namespace Slappergen
 
 				writer.WriteLine(@"// Slappergen Model
 #pragma warning disable 414,649
-using System;
 using Slapper.Attributes;
 
 namespace {0}
@@ -39,7 +38,7 @@ namespace {0}
 			foreach (var table in conn.Query<string>(@"select name from sysobjects where xtype='U'").ToList())
 			{
 				var className = GetMemberName(table);
-				writer.WriteLine(@"	[SlapperEntity(""{0}"")]
+				writer.WriteLine(@"	[Entity(""{0}"")]
 	public partial class {1}
 	{{", table, className);
 
@@ -55,11 +54,11 @@ namespace {0}
 						.ToArray();
 
 					writer.Write(@"		#region {1}
-		[SlapperField(""{2}""{3})]
+		[Field(""{2}""{3})]
 		protected {0} _{1}_Value;
-		[SlapperFieldModifier(""{2}"")]
+		[Ignore, Modifier(""{2}"")]
 		protected bool _{1}_Modified;
-		[SlapperIgnore]
+		[Ignore]
 		public virtual {0} {1}
 		{{
 			get
@@ -74,35 +73,43 @@ namespace {0}
 			}}
 		}}
 		#endregion
-", GetTypeName(col.Type, col.IsNullable), GetMemberName(col.Name), col.Name, (flags.Length > 0 ? ", " + String.Join(" | ", flags) : null));
+", GetTypeName(col.Type) + (col.Type.IsValueType ? "?" : ""), GetMemberName(col.Name), col.Name, (flags.Length > 0 ? ", " + String.Join(" | ", flags) : null));
 				}
 
 				writer.WriteLine("	}");
 			}
 		}
 
-		static string GetTypeName(Type t, bool nullable)
+		static string GetTypeName(Type t)
 		{
-			string name;
-			switch (t.Name)
+			switch (t.FullName)
 			{
-				case "Int32":
-					name = "int";
-					break;
-				case "Int64":
-					name = "long";
-					break;
-				case "Single":
-					name = "float";
-					break;
-				case "Boolean":
-					name = "bool";
-					break;
-				default:
-					name = t.Name;
-					break;
+				case "System.Int32":
+					return "int";
+				case "System.UInt32":
+					return "uint";
+				case "System.Int64":
+					return "long";
+				case "System.UInt64":
+					return "ulong";
+				case "System.Int16":
+					return "short";
+				case "System.UInt16":
+					return "ushort";
+				case "System.Single":
+					return "float";
+				case "System.Boolean":
+					return "bool";
+				case "System.Byte":
+				case "System.SByte":
+				case "System.Char":
+				case "System.Decimal":
+				case "System.Double":
+				case "System.Object":
+				case "System.String":
+					return t.Name.ToLower();
 			}
-			return name + (t.IsValueType ? "?" : "");
+			return t.FullName;
 		}
 
 		static string GetMemberName(string name)

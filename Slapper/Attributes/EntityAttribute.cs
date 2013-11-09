@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace Slapper.Attributes
 {
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-	public class SlapperEntityAttribute : SlapperAttribute
+	public class EntityAttribute : SlapperAttribute
 	{
 		public string Table;
 
-		public SlapperEntityAttribute(string table)
+		public EntityAttribute(string table)
 		{
 			Table = table;
 		}

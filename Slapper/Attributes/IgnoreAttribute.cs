@@ -8,7 +8,7 @@ namespace Slapper.Attributes
 {
 	// marker for members that shold not be mapped
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
-	public class SlapperIgnoreAttribute : SlapperAttribute
+	public class IgnoreAttribute : SlapperAttribute
 	{
 	}
 }
