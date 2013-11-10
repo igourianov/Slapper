@@ -61,60 +61,60 @@ namespace Slapper.Reflection
 
 		static Func<IDataRecord, T> CreateTupleMapper<T>(IDataReader reader)
 		{
-			var columns = GetColumns(reader, true).ToList();
 			var record = Expression.Parameter(typeof(IDataRecord), "record");
+			var columns = GetColumns(reader).ToList();
 			var types = typeof(T).GetGenericArguments();
-			var ctor = typeof(T).GetConstructor(types);
 			var values = new List<Expression>(types.Length);
 
-			int primIndex = 0;
+			int index = 0;
 			foreach (var t in types)
 			{
 				if (t.IsDbPrimitive())
 				{
-					values.Add(MapColumn(record, primIndex, columns[primIndex].Type, t));
-					primIndex++;
+					values.Add(MapColumn(record, index, columns[index].Type, t));
+					index++;
 				}
 				else
 				{
 					var table = GetTableName(t);
-					values.Add(MapObject(t, record, columns));
+					values.Add(MapObject(t, record, columns, ref index));
 				}
 			}
 
-			return Expression.Lambda<Func<IDataRecord, T>>(Expression.New(ctor, values), record).Compile();
+			return Expression.Lambda<Func<IDataRecord, T>>(Expression.New(typeof(T).GetConstructor(types), values), record).Compile();
 		}
 
 		static Func<IDataRecord, T> CreateValueMapper<T>(IDataReader reader)
 		{
 			var record = Expression.Parameter(typeof(IDataRecord), "record");
-			var col = GetColumns(reader, false).First();
+			var col = GetColumns(reader).First();
 			return Expression.Lambda<Func<IDataRecord, T>>(MapColumn(record, col.Index, col.Type, typeof(T)), record).Compile();
 		}
 
 		static Func<IDataRecord, T> CreateObjectMapper<T>(IDataReader reader)
 		{
+			int index = 0;
 			var t = typeof(T);
 			var record = Expression.Parameter(typeof(IDataRecord), "record");
-			var columns = GetColumns(reader, false);
-			return Expression.Lambda<Func<IDataRecord, T>>(MapObject(t, record, columns), record).Compile();
+			var columns = GetColumns(reader).ToList();
+			return Expression.Lambda<Func<IDataRecord, T>>(MapObject(t, record, columns, ref index), record).Compile();
 		}
 
-		static Expression MapObject(Type t, Expression record, IEnumerable<RecordColumn> columns)
+		static Expression MapObject(Type t, Expression record, IEnumerable<RecordColumn> columns, ref int index)
 		{
 			var table = GetTableName(t);
 			var members = GetMembers(t).ToList();
 			var init = new List<MemberBinding>(members.Count);
-
-			columns = columns.OrderByDescending(x => x.Table == table)
-				.ThenBy(x => x.Index)
-				.ToList();
+			columns = columns.Skip(index);
 
 			foreach (var m in members)
 			{
 				var col = columns.FirstOrDefault(x => x.Name == m.Name);
 				if (col != null)
+				{
 					init.Add(Expression.Bind(m.Info, MapColumn(record, col.Index, col.Type, m.Type)));
+					index = Math.Max(index, col.Index + 1);
+				}
 			}
 
 			if (init.Count == 0)
@@ -167,19 +167,14 @@ namespace Slapper.Reflection
 			return (attr != null && !String.IsNullOrEmpty(attr.Table) ? attr.Table : t.Name).ToLower();
 		}
 
-		static IEnumerable<RecordColumn> GetColumns(IDataReader reader, bool tableInfo)
+		static IEnumerable<RecordColumn> GetColumns(IDataReader reader)
 		{
-			var tableMap = (!tableInfo ? EmptyDataRows : reader.GetSchemaTable().Rows.Cast<DataRow>())
-				.ToDictionary(x => x.Field<int>("ColumnOrdinal"), x => x.Field<string>("BaseTableName").ToLower());
-
 			for (int i = 0; i < reader.FieldCount; i++)
 			{
-				string table;
 				yield return new RecordColumn {
 					Index = i,
 					Name = reader.GetName(i).ToLower(),
 					Type = reader.GetFieldType(i),
-					Table = tableInfo && tableMap.TryGetValue(i, out table) ? table : null,
 				};
 			}
 		}
@@ -188,7 +183,6 @@ namespace Slapper.Reflection
 		{
 			public int Index;
 			public string Name;
-			public string Table;
 			public Type Type;
 		}
 

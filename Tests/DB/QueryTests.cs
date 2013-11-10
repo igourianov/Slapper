@@ -16,13 +16,17 @@ namespace Slapper.Tests.DB
 		{
 			using (var conn = OpenConnection())
 			{
-				var list = conn.Query<Tuple<string, Employee>>(@"
-select c.Name, e.*
+				var list = conn.Query<Tuple<string, Employee, int>>(@"
+select c.Name, e.*, c.Id
 from Employee e
-inner join Company c on(c.ID=e.CompanyID)").ToList();
-				Assert.AreNotEqual(0, list.Count);
+inner join Company c on(c.ID=e.CompanyID)
+where e.Name=@name", new { name = "Bender" }).ToList();
+
+				Assert.AreEqual(1, list.Count);
+				Assert.AreEqual(1, list[0].Item3);
 				Assert.AreEqual("Planet Express", list[0].Item1);
-				Assert.AreEqual("Philip Fry", list[0].Item2.Name);
+				Assert.AreEqual(2, list[0].Item2.ID);
+				Assert.AreEqual("Bender", list[0].Item2.Name);
 			}
 		}
 
@@ -45,14 +49,18 @@ inner join Company c on(c.ID=e.CompanyID)").ToList();
 		{
 			using (var conn = OpenConnection())
 			{
-				var list = conn.Query<Tuple<Employee,Company>>(@"
+				var list = conn.Query<Tuple<Employee, Company>>(@"
 select *
 from Employee e
-inner join Company c on(c.ID=e.CompanyID)").ToList();
+inner join Company c on(c.ID=e.CompanyID)
+where e.Name=@name", new { name = "Mom" }).ToList();
 
-				Assert.AreNotEqual(0, list.Count);
-				Assert.IsFalse(list.All(x => x.Item1.ID == x.Item2.ID));
-				Assert.IsFalse(list.All(x => x.Item1.Name == x.Item2.Name));
+				Assert.AreEqual(1, list.Count);
+				Assert.AreEqual(6, list[0].Item1.ID);
+				Assert.AreEqual("Mom", list[0].Item1.Name);
+				Assert.AreEqual(3, list[0].Item1.CompanyID);
+				Assert.AreEqual(3, list[0].Item2.ID);
+				Assert.AreEqual("Mom Corp", list[0].Item2.Name);
 			}
 		}
 
