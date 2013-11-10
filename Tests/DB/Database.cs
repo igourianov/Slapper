@@ -1,19 +1,25 @@
 ﻿using System.Configuration;
 using System.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Data;
 
 namespace Slapper.Tests.DB
 {
 	[TestClass]
-	public class SetupDatabase
+	public class Database
 	{
-		[AssemblyInitializeAttribute]
+		public static IDbConnection OpenConnection()
+		{
+			var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["Test"].ConnectionString);
+			conn.Open();
+			return conn;
+		}
+
+		[AssemblyInitialize]
 		public static void Setup(TestContext context)
 		{
-			using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["Test"].ConnectionString))
+			using (var conn = OpenConnection())
 			{
-				conn.Open();
-
 				conn.ExecuteNonQuery(@"
 if exists(select top 1 null from sys.objects where type='U' and name='Employee')
 	drop table Employee;

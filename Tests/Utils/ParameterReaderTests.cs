@@ -8,7 +8,7 @@ namespace Slapper.Tests.Utils
 	[TestClass]
 	public class ParameterReaderTests
 	{
-		[TestMethod]
+		[TestMethod, TestCategory("ParameterReader")]
 		public void ReadSpecificInterface()
 		{
 			var prms = ParameterMapper.Read<IFoo>(new Foo { Bar = "BAR!", Baz = 10 });
@@ -16,7 +16,7 @@ namespace Slapper.Tests.Utils
 			Assert.IsTrue(prms.Any(x => x.Name == "Baz" && (int)x.Value == 10));
 		}
 
-		[TestMethod]
+		[TestMethod, TestCategory("ParameterReader")]
 		public void ReadUntypedObject()
 		{
 			var prms = ParameterMapper.Read((object)new Foo { Bar = "BAR!", Baz = 10 });

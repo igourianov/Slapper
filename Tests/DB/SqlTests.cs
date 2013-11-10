@@ -8,17 +8,10 @@ namespace Slapper.Tests.DB
 	[TestClass]
 	public class SqlTests
 	{
-		private SqlConnection OpenConnection()
-		{
-			var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["Test"].ConnectionString);
-			conn.Open();
-			return conn;
-		}
-
-		[TestMethod]
+		[TestMethod, TestCategory("SqlExtensions")]
 		public void BasicRead()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				using (var reader = conn.ExecuteReader("select top 1 * from Employee where Name like @Name", new { Name = "Zapp%" }))
 				{
@@ -32,14 +25,26 @@ namespace Slapper.Tests.DB
 			}
 		}
 
-		[TestMethod]
+		[TestMethod, TestCategory("SqlExtensions")]
 		public void TransactionSupport()
 		{
-			using (var conn = OpenConnection())
-			using (var txn = conn.BeginTransaction("test-transaction"))
+			using (var conn = Database.OpenConnection())
+			using (var txn = conn.BeginTransaction())
 			{
 				txn.ExecuteScalar<int>("select count(*) from Company");
 				txn.Rollback();
+			}
+		}
+
+		[TestMethod, TestCategory("SqlExtensions")]
+		public void ReplaceParameters()
+		{
+			using (var conn = Database.OpenConnection())
+			using (var cmd = conn.CreateCommand("select ID from Employee where Name=@name"))
+			{
+				var id1 = cmd.ExecuteScalar<int>(new { name = "Bender" });
+				var id2 = cmd.ExecuteScalar<int>(new { name = "Mom" });
+				Assert.AreNotEqual(id1, id2);
 			}
 		}
 	}

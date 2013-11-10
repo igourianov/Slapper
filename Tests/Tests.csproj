@@ -49,12 +49,11 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="DB\TestBase.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="DB\QueryTests.cs" />
     <Compile Include="Utils\ParameterReaderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DB\SetupDatabase.cs" />
+    <Compile Include="DB\Database.cs" />
     <Compile Include="DB\SqlTests.cs" />
   </ItemGroup>
   <ItemGroup>

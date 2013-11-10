@@ -9,12 +9,12 @@ using Slapper.Tests.Model;
 namespace Slapper.Tests.DB
 {
 	[TestClass]
-	public class QueryTests : TestBase
+	public class QueryTests
 	{
-		[TestMethod]
+		[TestMethod, TestCategory("Query"), TestCategory("QueryTuple")]
 		public void QueryMixedTuple()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				var list = conn.Query<Tuple<string, Employee, int>>(@"
 select c.Name, e.*, c.Id
@@ -30,10 +30,10 @@ where e.Name=@name", new { name = "Bender" }).ToList();
 			}
 		}
 
-		[TestMethod]
+		[TestMethod, TestCategory("Query"), TestCategory("QueryTuple")]
 		public void QueryValueTuple()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				var list = conn.Query<Tuple<int, string>>(@"select ID, Name from Employee").ToList();
 				Assert.AreNotEqual(0, list.Count);
@@ -44,10 +44,10 @@ where e.Name=@name", new { name = "Bender" }).ToList();
 			}
 		}
 
-		[TestMethod]
+		[TestMethod, TestCategory("Query"), TestCategory("QueryTuple")]
 		public void QueryObjectTuple()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				var list = conn.Query<Tuple<Employee, Company>>(@"
 select *
@@ -64,10 +64,10 @@ where e.Name=@name", new { name = "Mom" }).ToList();
 			}
 		}
 
-		[TestMethod]
+		[TestMethod, TestCategory("Query")]
 		public void QueryObjects()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				var list = conn.Query<Employee>("select * from Employee").ToList();
 				Assert.AreNotEqual(0, list.Count);
@@ -77,10 +77,10 @@ where e.Name=@name", new { name = "Mom" }).ToList();
 			}
 		}
 
-		[TestMethod]
+		[TestMethod, TestCategory("Query")]
 		public void QueryInherited()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				var e = conn.Query<EmployeeEx>(@"
 select e.*, c.Name as CompanyName
@@ -94,15 +94,15 @@ where e.Name=@name
 			}
 		}
 
-		private class EmployeeEx : Employee
+		public class EmployeeEx : Employee
 		{
 			public string CompanyName;
 		}
 
-		[TestMethod]
+		[TestMethod, TestCategory("Query")]
 		public void QueryValueList()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				var list = conn.Query<int>("select ID from Employee").ToList();
 				Assert.AreNotEqual(0, list.Count);
@@ -110,20 +110,20 @@ where e.Name=@name
 			}
 		}
 
-		[TestMethod]
+		[TestMethod, TestCategory("Query")]
 		public void CheckConnectionFree()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				var x = conn.Query<string>("select Name from Employee").First();
 				var y = conn.Query<string>("select Name from Employee").First();
 			}
 		}
 
-		[TestMethod, ExpectedException(typeof(Slapper.Reflection.DataReaderMapper.MemberMappingException))]
+		[TestMethod, TestCategory("Query"), ExpectedException(typeof(Slapper.Reflection.DataReaderMapper.MemberMappingException))]
 		public void CheckBindException()
 		{
-			using (var conn = OpenConnection())
+			using (var conn = Database.OpenConnection())
 			{
 				var list = conn.Query<BadEmployee>("select * from Employee").ToList();
 			}
