@@ -86,9 +86,11 @@ where e.Name=@name", new { name = "Mom" }).ToList();
 select e.*, c.Name as CompanyName
 from Employee e
 inner join Company c on(c.ID=e.CompanyID)
-").First();
-				Assert.IsNotNull(e.Name);
-				Assert.IsNotNull(e.CompanyName);
+where e.Name=@name
+", new { name = "Mom" }).First();
+
+				Assert.AreEqual("Mom", e.Name);
+				Assert.AreEqual("Mom Corp", e.CompanyName);
 			}
 		}
 
