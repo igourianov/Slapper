@@ -38,11 +38,7 @@ namespace Slapper
 
 		public static IEnumerable<T> Query<T>(this IDbCommand command, object parameters = null)
 		{
-			var behavior = CommandBehavior.SingleResult;
-			if (typeof(T).IsTuple())
-				behavior |= CommandBehavior.KeyInfo;
-
-			using (var reader = command.ExecuteReader(parameters, behavior))
+			using (var reader = command.ExecuteReader(parameters, CommandBehavior.SingleResult))
 			{
 				var map = DataReaderMapper.GetMapper<T>(command.CommandText, reader);
 				while (reader.Read())
