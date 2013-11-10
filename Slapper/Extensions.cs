@@ -36,14 +36,20 @@ namespace Slapper
 			return command.ExecuteReader(behavior);
 		}
 
-		public static IEnumerable<T> Query<T>(this IDbCommand command, object parameters = null)
+		public static IEnumerable<T> Query<T>(this IDbCommand command)
 		{
-			using (var reader = command.ExecuteReader(parameters, CommandBehavior.SingleResult))
+			using (var reader = command.ExecuteReader(CommandBehavior.SingleResult))
 			{
 				var map = DataReaderMapper.GetMapper<T>(command.CommandText, reader);
 				while (reader.Read())
 					yield return map(reader);
 			}
+		}
+
+		public static IEnumerable<T> Query<T>(this IDbCommand command, object parameters)
+		{
+			SetParams(command, parameters);
+			return command.Query<T>();
 		}
 
 		static void SetParams(IDbCommand command, object parameters)
