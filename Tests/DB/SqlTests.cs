@@ -12,16 +12,11 @@ namespace Slapper.Tests.DB
 		public void BasicRead()
 		{
 			using (var conn = Database.OpenConnection())
+			using (var reader = conn.ExecuteReader("select top 1 * from Employee where Name like @Name", new { Name = "Zapp%" }))
 			{
-				using (var reader = conn.ExecuteReader("select top 1 * from Employee where Name like @Name", new { Name = "Zapp%" }))
-				{
-					Assert.IsTrue(reader.Read());
-					Assert.AreNotEqual((int)reader["ID"], 0);
-					Assert.AreEqual("Zapp Brannigan", reader["Name"]);
-				}
-
-				var company = conn.ExecuteScalar<int>("select top 1 CompanyID from Employee where Name=@Name", new { Name = "Hermes Conrad" });
-				Assert.AreEqual(1, company);
+				Assert.IsTrue(reader.Read());
+				Assert.AreEqual(4, (int)reader["ID"]);
+				Assert.AreEqual("Zapp Brannigan", (string)reader["Name"]);
 			}
 		}
 
@@ -29,10 +24,13 @@ namespace Slapper.Tests.DB
 		public void TransactionSupport()
 		{
 			using (var conn = Database.OpenConnection())
-			using (var txn = conn.BeginTransaction())
 			{
-				txn.ExecuteScalar<int>("select count(*) from Company");
-				txn.Rollback();
+				using (var txn = conn.BeginTransaction())
+				{
+					txn.ExecuteNonQuery("update Employee set Name='foo'");
+					txn.Rollback();
+				}
+				Assert.AreEqual(0, conn.ExecuteScalar<int>("select count (*) from Employee where Name='foo'"));
 			}
 		}
 
